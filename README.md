@@ -29,7 +29,7 @@ using .Net 4.5 async/await patterns.
         client.AcknowledgeLastRecord();
     }
     
-**asynchronously**  (requires .Net 4.5)
+**Asynchronously**  (requires .Net 4.5)
 
     using (var client = await SynelClient.ConnectAsync(HostAddress))
     {
