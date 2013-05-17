@@ -48,16 +48,16 @@ using .Net 4.5 async/await patterns.
 Not all terminals or functions are currently supported.
 This code is safe for production, but should still be considered *unstable*.
 
-Currently Implemented:
+**Currently Implemented**
  - Network connection
  - Retreiving basic data
  - Various commands for getting status
  - Setting the terminal's clock
  
-Not yet implemented:
+**Not yet implemented**
  - Sending and retrieving fingerprint templates.
  - Programming a terminal application.
- - Serial or modem communication.
+ - Serial or modem connection.
  - Miscellaneous other lesser-used functions.
 
 ### Solution Structure
