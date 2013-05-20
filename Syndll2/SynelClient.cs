@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -273,7 +274,13 @@ namespace Syndll2
 
                 var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
 #if DEBUG
-                var d = s.Length == 0 ? "(NO DATA)" : s[0] == ControlChars.NACK ? "(NACK)" : s[0] == ControlChars.ACK ? "(ACK)" : s[0] == ControlChars.EOT ? "(EOT)" : s;
+                var d = s.Length == 0
+                            ? "(NO DATA)"
+                            : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
+                               .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
+                               .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
+                               .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
+                
                 Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
 #endif
 
@@ -317,7 +324,13 @@ namespace Syndll2
 
                 var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
 #if DEBUG
-                var d = s.Length == 0 ? "(NO DATA)" : s[0] == ControlChars.NACK ? "(NACK)" : s[0] == ControlChars.ACK ? "(ACK)" : s[0] == ControlChars.EOT ? "(EOT)" : s;
+                var d = s.Length == 0
+                            ? "(NO DATA)"
+                            : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
+                               .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
+                               .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
+                               .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
+
                 Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
 #endif
 
