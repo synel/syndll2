@@ -128,10 +128,6 @@ namespace Syndll2
             if (s == null)
                 throw new ArgumentNullException("s");
 
-            // return standard responses
-            if (s.Length == 1 && s[0] == ControlChars.ACK) return Response.Acknowledged;
-            if (s.Length == 1 && s[0] == ControlChars.NACK) return Response.NotAcknowledged;
-
             // check data size
             if (s.Length < PacketOverheadSize)
                 throw new ArgumentException(string.Format("Packet size is too small! ({0} chars)", s.Length));
@@ -266,8 +262,8 @@ namespace Syndll2
                     // add it to the list
                     bytesReceived.Add(b);
 
-                    // stop when we receive a termination or acknowledgment character
-                    if (b == ControlChars.EOT || b == ControlChars.ACK || b == ControlChars.NACK)
+                    // stop when we receive a termination character
+                    if (b == ControlChars.EOT)
                         break;
 
                     // make sure we can't go on forever
@@ -310,8 +306,8 @@ namespace Syndll2
                     var b = (byte)buffer[0];
                     bytesReceived.Add(b);
 
-                    // stop when we receive a termination or acknowledgment character
-                    if (b == ControlChars.EOT || b == ControlChars.ACK || b == ControlChars.NACK)
+                    // stop when we receive a termination character
+                    if (b == ControlChars.EOT)
                         break;
 
                     // make sure we can't go on forever
