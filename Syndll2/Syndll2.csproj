@@ -57,7 +57,10 @@
     <Compile Include="Data\HardwareConfiguration.cs" />
     <Compile Include="Data\KeyboardTypes.cs" />
     <Compile Include="Data\NetworkCardTypes.cs" />
+    <Compile Include="Data\ProgramDebugStatus.cs" />
+    <Compile Include="Data\SearchResult.cs" />
     <Compile Include="Data\SerialPortModes.cs" />
+    <Compile Include="Data\SingleRecord.cs" />
     <Compile Include="Data\TerminalTypes.cs" />
     <Compile Include="Data\TextAlignment.cs" />
     <Compile Include="IConnection.cs" />

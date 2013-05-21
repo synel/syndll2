@@ -63,5 +63,26 @@ namespace Syndll2.Tests.StatusTests
                               "Set: {0}  Got: {1}", dt, status.Timestamp);
             }
         }
+
+
+        [TestMethod]
+        public void Can_Set_Terminal_Time_Zone()
+        {
+            using (var client = TestSettings.Connect())
+            {
+                var tz = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                client.Terminal.SetTerminalTimeZone(tz);
+            }
+        }
+
+        [TestMethod]
+        public async Task Can_Set_Terminal_Time_Zone_Async()
+        {
+            using (var client = await TestSettings.ConnectAsync())
+            {
+                var tz = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                await client.Terminal.SetTerminalTimeZoneAsync(tz);
+            }
+        }
     }
 }

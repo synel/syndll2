@@ -427,6 +427,46 @@ namespace Syndll2
         }
         #endregion
 
+        #region Halt
+        /// <summary>
+        /// Directs the terminal to terminate the normal operation mode and proceed to programming mode.
+        /// </summary>
+        public void Halt()
+        {
+            var response = _client.SendAndReceive(RequestCommand.Halt);
+            ValidateAcknowledgment(response);
+        }
+
+        /// <summary>
+        /// Returns an awaitable task that directs the terminal to terminate the normal operation mode and proceed to programming mode.
+        /// </summary>
+        public async Task HaltAsync()
+        {
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Halt);
+            ValidateAcknowledgment(response);
+        }
+        #endregion
+
+        #region Run
+        /// <summary>
+        /// Directs the terminal to terminate programming mode and proceed to the normal operation mode.
+        /// </summary>
+        public void Run()
+        {
+            var response = _client.SendAndReceive(RequestCommand.Run);
+            ValidateAcknowledgment(response);
+        }
+
+        /// <summary>
+        /// Returns an awaitable task that directs the terminal to terminate programming mode and proceed to the normal operation mode.
+        /// </summary>
+        public async Task RunAsync()
+        {
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Run);
+            ValidateAcknowledgment(response);
+        }
+        #endregion
+        
         #region DisplayMessage
 
         /// <summary>
@@ -492,8 +532,72 @@ namespace Syndll2
         #region ValidateAcknowledgment
         private static void ValidateAcknowledgment(Response response)
         {
-            if (response != Response.Acknowledged)
-                throw new InvalidDataException(string.Format("Expected simple acknowledgment.  Got: {0}", response.Command));
+            if (response.Command != PrimaryResponseCommand.Acknowledged)
+                throw new InvalidDataException(string.Format("Expected acknowledgment.  Got: {0}  Data: {1}", response.Command, response.Data));
+        }
+        #endregion
+
+        #region GetSingleRecord
+        /// <summary>
+        /// Gets a single record from a table, by a key.
+        /// </summary>
+        /// <param name="tableType">The table type.</param>
+        /// <param name="tableId">The table ID.</param>
+        /// <param name="key">The key</param>
+        /// <returns>An object containing status information, and the record if it was found.</returns>
+        public SingleRecord GetSingleRecord(char tableType, int tableId, string key)
+        {
+            var data = string.Format("MFS{0}{1:D3}0{2}", tableType, tableId, key);
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, data);
+            return GetSingleRecordResult(response);
+        }
+
+        /// <summary>
+        /// Returns an awaitable task that gets a single record from a table, by a key.
+        /// </summary>
+        /// <param name="tableType">The table type.</param>
+        /// <param name="tableId">The table ID.</param>
+        /// <param name="key">The key</param>
+        /// <returns>A task that returns an object containing status information, and the record if it was found.</returns>
+        public async Task<SingleRecord> GetSingleRecordAsync(char tableType, int tableId, string key)
+        {
+            var data = string.Format("MFS{0}{1:D3}0{2}", tableType, tableId, key);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, data);
+            return GetSingleRecordResult(response);
+        }
+
+        private static SingleRecord GetSingleRecordResult(Response response)
+        {
+            if (response.Command != PrimaryResponseCommand.SystemCommands)
+                throw new InvalidDataException(string.Format("Expected response of {0} but received {1}.",
+                                                             PrimaryResponseCommand.SystemCommands, response.Command));
+
+            return SingleRecord.Parse(response.Data);
+        }
+        #endregion
+
+        #region GetSystemParameters
+        public string GetSystemParameters()
+        {
+            ////Halt();
+            //var record = GetSingleRecord('p', 1, "");
+            ////Run();
+            //return record;
+            throw new NotImplementedException();
+        }
+        #endregion
+
+
+        #region SetTerminalTimeZone
+        public void SetTerminalTimeZone(TimeZoneInfo timeZone)
+        {
+            var parameters = GetSystemParameters();
+            throw new NotImplementedException();
+        }
+
+        public async Task SetTerminalTimeZoneAsync(TimeZoneInfo timeZone)
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }
