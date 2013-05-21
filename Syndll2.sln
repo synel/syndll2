@@ -29,10 +29,10 @@ Global
 		SccProjectUniqueName2 = Syndll2.Tests\\Syndll2.Tests.csproj
 		SccProjectName2 = Syndll2.Tests
 		SccLocalPath2 = Syndll2.Tests
-		SccLocalPath3 = .
-		SccProjectUniqueName4 = Syndll2_Net40\\Syndll2_Net40.csproj
-		SccProjectName4 = Syndll2_Net40
-		SccLocalPath4 = Syndll2_Net40
+		SccProjectUniqueName3 = Syndll2_Net40\\Syndll2_Net40.csproj
+		SccProjectName3 = Syndll2_Net40
+		SccLocalPath3 = Syndll2_Net40
+		SccLocalPath4 = .
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
