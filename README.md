@@ -3,8 +3,9 @@ Syndll2
 
 Syndll2 is a reliable, high-performance, thread-safe implementation of the Synel Communications Protocol.
 It is used primarily for communicating with Synel time and attendance terminals, such as the SY700 series.
-It currently requires .Net 4.0 or 4.5, and can be used synchronously or asynchronously,
-using .Net 4.5 async/await patterns.
+
+This library supports .Net 4.0 and higher.  However, if you are using .Net 4.5, you can optionally take
+advantage of asynchronous methods, using async/await patterns.
 
 #### A note on thread safety
  - A connection should be created, used, and disposed in the same thread.  It is best to do this with a `using` block.
@@ -21,9 +22,22 @@ The best and easiest way to use Syndll2 is by adding a NuGet package reference.
 *Note that the package is currently in prerelease status.*
     
 This will add a compiled version of Syndll2.dll to your project, and add a project reference automatically.
+
  - Nuget makes it very simple to update your project to the latest version of this library.
+ - NuGet is available for both Visual Studio 2010 and 2012.
+ - You can use the Package Manager console within Visual Studio, or you can also use a graphical interface if you prefer.
  - If you are not familiar with Nuget, please [start here](http://docs.nuget.org/).
  - You can also visit the [Syndll2 Nuget Feed](https://nuget.org/packages/Syndll2/) directly.
+
+##### Staying Current
+
+As changes are made to Syndll2, you can use Nuget to keep your project updated.
+
+    PM> Update-Package Syndll2 -Pre
+    
+*Again, note that the `-Pre` flag is required since the library is currently in prerelease status.
+After a stable version is published, you will no longer have to pass the `-Pre` flag, and this page will be updated.*
+
 
 ### Example Usage
 
