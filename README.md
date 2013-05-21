@@ -12,6 +12,19 @@ using .Net 4.5 async/await patterns.
  - Simultaneous connections to the same terminal from different threads will automatically be queued so they can't interfere with each other.
  - Simultaneous connections to multiple *different* terminals are supported and can be run in parallel.
 
+### Installation
+
+The best and easiest way to use Syndll2 is by adding a NuGet package reference.
+
+    PM> Install-Package Syndll2 -Pre
+    
+*Note that the package is currently in prerelease status.*
+    
+This will add a compiled version of Syndll2.dll to your project, and add a project reference automatically.
+ - Nuget makes it very simple to update your project to the latest version of this library.
+ - If you are not familiar with Nuget, please [start here](http://docs.nuget.org/).
+ - You can also visit the [Syndll2 Nuget Feed](https://nuget.org/packages/Syndll2/) directly.
+
 ### Example Usage
 
 
