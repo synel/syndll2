@@ -93,7 +93,11 @@ This code is safe for production, but should still be considered *unstable*.
 ### Solution Structure
 
 **Syndll2**  
-This is the main library.  
+This is the main project for the library, targeting .Net 4.5.
+
+**Syndll2_Net40**  
+This is a compatibility project, targeting .Net 4.0.
+All source files are shared as links from the main project.
 
 **Syndll2.Tests**  
 This project contains unit tests to prove functionality.
