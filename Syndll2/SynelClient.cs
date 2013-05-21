@@ -17,6 +17,8 @@ namespace Syndll2
     public class SynelClient : IDisposable
     {
         private readonly IConnection _connection;
+        private readonly StreamReader _reader;
+        private readonly StreamWriter _writer;
         private readonly TerminalOperations _terminal;
         private readonly byte _terminalId;
 
@@ -42,6 +44,8 @@ namespace Syndll2
 
             _terminalId = terminalId;
             _connection = connection;
+            _reader = new StreamReader(_connection.Stream, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, bufferSize: MaxPacketSize);
+            _writer = new StreamWriter(_connection.Stream, Encoding.ASCII, bufferSize: MaxPacketSize);
             _terminal = new TerminalOperations(this);
         }
 
@@ -57,6 +61,7 @@ namespace Syndll2
             return new SynelClient(connection, terminalId);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that asynchronously connects to a terminal over TCP using the provided parameters.
         /// </summary>
@@ -68,12 +73,15 @@ namespace Syndll2
             var connection = await NetworkConnection.ConnectAsync(host, port);
             return new SynelClient(connection, terminalId);
         }
+#endif
 
         /// <summary>
         /// Disconnects from the terminal, and releases any resources.
         /// </summary>
         public void Dispose()
         {
+            _reader.Dispose();
+            _writer.Dispose();
             _connection.Dispose();
         }
 
@@ -176,6 +184,7 @@ namespace Syndll2
             return ParseResponse(rawResponse);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that communicates with the terminal by sending a request and receiving a response.
         /// </summary>
@@ -191,6 +200,7 @@ namespace Syndll2
             var rawResponse = await SendAndReceiveAsync(rawRequest);
             return ParseResponse(rawResponse);
         }
+#endif
 
         private string SendAndReceive(string command)
         {
@@ -198,11 +208,13 @@ namespace Syndll2
             return Receive();
         }
 
+#if NET_45
         private async Task<string> SendAndReceiveAsync(string command)
         {
             await SendAsync(command);
             return await ReceiveAsync();
         }
+#endif
 
         private void Send(string command)
         {
@@ -215,14 +227,12 @@ namespace Syndll2
                 throw new InvalidOperationException("The stream cannot be written to.");
 
             Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + command);
-
-            using (var writer = new StreamWriter(_connection.Stream, Encoding.ASCII, command.Length, leaveOpen: true))
-            {
-                writer.Write(command);
-                writer.Flush();
-            }
+            
+            _writer.Write(command);
+            _writer.Flush();
         }
 
+#if NET_45
         private async Task SendAsync(string command)
         {
             // make sure we are connected
@@ -234,13 +244,11 @@ namespace Syndll2
                 throw new InvalidOperationException("The stream cannot be written to.");
 
             Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + command);
-
-            using (var writer = new StreamWriter(_connection.Stream, Encoding.ASCII, command.Length, leaveOpen: true))
-            {
-                await writer.WriteAsync(command);
-                await writer.FlushAsync();
-            }
+            
+            await _writer.WriteAsync(command);
+            await _writer.FlushAsync();
         }
+#endif
 
         private string Receive()
         {
@@ -248,95 +256,85 @@ namespace Syndll2
             if (!Connected)
                 throw new InvalidOperationException("The client is not connected.");
 
-            using (var reader = new StreamReader(_connection.Stream, Encoding.ASCII,
-                detectEncodingFromByteOrderMarks: false,
-                bufferSize: MaxPacketSize,
-                leaveOpen: true))
+            // read a packet from the stream
+            var bytesReceived = new List<byte>(MaxPacketSize);
+            while (!_reader.EndOfStream)
             {
-                // read a packet from the stream
-                var bytesReceived = new List<byte>(MaxPacketSize);
-                while (!reader.EndOfStream)
-                {
-                    // read a byte
-                    var b = (byte)reader.Read();
+                // read a byte
+                var b = (byte) _reader.Read();
 
-                    // add it to the list
-                    bytesReceived.Add(b);
+                // add it to the list
+                bytesReceived.Add(b);
 
-                    // stop when we receive a termination character
-                    if (b == ControlChars.EOT)
-                        break;
+                // stop when we receive a termination character
+                if (b == ControlChars.EOT)
+                    break;
 
-                    // make sure we can't go on forever
-                    if (bytesReceived.Count > MaxPacketSize)
-                        throw new ProtocolViolationException("Received too much data without a termination character!");
-                }
+                // make sure we can't go on forever
+                if (bytesReceived.Count > MaxPacketSize)
+                    throw new ProtocolViolationException("Received too much data without a termination character!");
+            }
 
-                var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
+            var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
 #if DEBUG
-                var d = s.Length == 0
-                            ? "(NO DATA)"
-                            : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
-                               .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
-                               .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
-                               .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
-                
-                Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
+            var d = s.Length == 0
+                        ? "(NO DATA)"
+                        : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
+                           .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
+                           .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
+                           .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
+
+            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
 #endif
 
-                return s;
-            }
+            return s;
         }
 
+#if NET_45
         private async Task<string> ReceiveAsync()
         {
             // make sure we are connected
             if (!Connected)
                 throw new InvalidOperationException("The client is not connected.");
 
-            using (var reader = new StreamReader(_connection.Stream, Encoding.ASCII,
-                detectEncodingFromByteOrderMarks: false,
-                bufferSize: MaxPacketSize,
-                leaveOpen: true))
+            // read a packet from the stream
+            var bytesReceived = new List<byte>(MaxPacketSize);
+            while (!_reader.EndOfStream)
             {
-                // read a packet from the stream
-                var bytesReceived = new List<byte>(MaxPacketSize);
-                while (!reader.EndOfStream)
-                {
-                    // read a byte
-                    var buffer = new char[1];
-                    var i = await reader.ReadAsync(buffer, 0, 1);
-                    if (i == 0)
-                        break;
+                // read a byte
+                var buffer = new char[1];
+                var i = await _reader.ReadAsync(buffer, 0, 1);
+                if (i == 0)
+                    break;
 
-                    // add it to the list
-                    var b = (byte)buffer[0];
-                    bytesReceived.Add(b);
+                // add it to the list
+                var b = (byte) buffer[0];
+                bytesReceived.Add(b);
 
-                    // stop when we receive a termination character
-                    if (b == ControlChars.EOT)
-                        break;
+                // stop when we receive a termination character
+                if (b == ControlChars.EOT)
+                    break;
 
-                    // make sure we can't go on forever
-                    if (bytesReceived.Count > MaxPacketSize)
-                        throw new ProtocolViolationException("Received too much data without a termination character!");
-                }
+                // make sure we can't go on forever
+                if (bytesReceived.Count > MaxPacketSize)
+                    throw new ProtocolViolationException("Received too much data without a termination character!");
+            }
 
-                var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
+            var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
 #if DEBUG
-                var d = s.Length == 0
-                            ? "(NO DATA)"
-                            : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
-                               .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
-                               .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
-                               .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
+            var d = s.Length == 0
+                        ? "(NO DATA)"
+                        : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
+                           .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
+                           .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
+                           .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
 
-                Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
+            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
 #endif
 
-                return s;
-            }
+            return s;
         }
+#endif
 
         #region Binary UCP connection (TODO)
 

@@ -40,9 +40,11 @@ namespace Syndll2
             throw new NotImplementedException();
         }
 
+#if NET_45
         public static async Task<NetworkConnection> ConnectAsync() // TODO: pass serial port parameters
         {
             throw new NotImplementedException();
         }
+#endif
     }
 }

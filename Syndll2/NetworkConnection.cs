@@ -71,6 +71,7 @@ namespace Syndll2
             return connection;
         }
 
+#if NET_45
         public static async Task<NetworkConnection> ConnectAsync(string host, int port = 3734, TimeSpan timeout = default(TimeSpan))
         {
             var endPoint = GetEndPoint(host, port);
@@ -101,6 +102,7 @@ namespace Syndll2
 
             return connection;
         }
+#endif
 
         private static IPEndPoint GetEndPoint(string host, int port)
         {

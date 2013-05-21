@@ -42,6 +42,7 @@ namespace Syndll2
             }
         }
 
+#if NET_45
         public static async Task EnterAsync(IPEndPoint endPoint, TimeSpan timeout)
         {
             var sw = new Stopwatch();
@@ -65,6 +66,7 @@ namespace Syndll2
                 await Task.Delay(10);
             }
         }
+#endif
 
         public static void Exit(IPEndPoint endPoint)
         {

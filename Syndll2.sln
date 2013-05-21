@@ -7,21 +7,32 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2.Tests", "Syndll2.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2.TimeAmerica", "Syndll2.TimeAmerica\Syndll2.TimeAmerica.csproj", "{2294A410-4B72-4BCE-A68D-5BF04EE02985}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1F130507-E94D-4335-9155-AA47AB38A4D4}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE.txt = LICENSE.txt
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2_Net40", "Syndll2_Net40\Syndll2_Net40.csproj", "{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 4
+		SccNumberOfProjects = 5
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://tfs.corp.timeamerica.com:8081/tfs/TimeAmericav6
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = Syndll2.Tests\\Syndll2.Tests.csproj
-		SccProjectName1 = Syndll2.Tests
-		SccLocalPath1 = Syndll2.Tests
-		SccProjectUniqueName2 = Syndll2\\Syndll2.csproj
-		SccProjectName2 = Syndll2
-		SccLocalPath2 = Syndll2
-		SccProjectUniqueName3 = Syndll2.TimeAmerica\\Syndll2.TimeAmerica.csproj
-		SccProjectName3 = Syndll2.TimeAmerica
-		SccLocalPath3 = Syndll2.TimeAmerica
+		SccTeamFoundationServer = http://tfs.corp.timeamerica.com:8081/tfs/xacttimev6
+		SccProjectUniqueName0 = Syndll2\\Syndll2.csproj
+		SccProjectName0 = Syndll2
+		SccLocalPath0 = Syndll2
+		SccProjectUniqueName1 = Syndll2.TimeAmerica\\Syndll2.TimeAmerica.csproj
+		SccProjectName1 = Syndll2.TimeAmerica
+		SccLocalPath1 = Syndll2.TimeAmerica
+		SccProjectUniqueName2 = Syndll2.Tests\\Syndll2.Tests.csproj
+		SccProjectName2 = Syndll2.Tests
+		SccLocalPath2 = Syndll2.Tests
+		SccLocalPath3 = .
+		SccProjectUniqueName4 = Syndll2_Net40\\Syndll2_Net40.csproj
+		SccProjectName4 = Syndll2_Net40
+		SccLocalPath4 = Syndll2_Net40
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +51,10 @@ Global
 		{2294A410-4B72-4BCE-A68D-5BF04EE02985}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2294A410-4B72-4BCE-A68D-5BF04EE02985}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2294A410-4B72-4BCE-A68D-5BF04EE02985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

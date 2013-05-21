@@ -29,6 +29,7 @@ namespace Syndll2
             return GetTerminalStatusResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets the status information from the terminal.
         /// </summary>
@@ -37,6 +38,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.GetStatus);
             return GetTerminalStatusResult(response);
         }
+#endif
 
         private static TerminalStatus GetTerminalStatusResult(Response response)
         {
@@ -62,6 +64,7 @@ namespace Syndll2
             Thread.Sleep(20);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that sets the terminal's clock and active function.
         /// </summary>
@@ -74,6 +77,7 @@ namespace Syndll2
             // pause to allow time for the terminal to update internally
             await Task.Delay(20);
         }
+#endif
         #endregion
 
         #region SetTerminalClock
@@ -87,6 +91,7 @@ namespace Syndll2
             SetTerminalStatus(clockDateTime, status.ActiveFunction);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that sets the terminal's clock.
         /// Does not change the currently active function.
@@ -96,6 +101,7 @@ namespace Syndll2
             var status = await GetTerminalStatusAsync();
             await SetTerminalStatusAsync(clockDateTime, status.ActiveFunction);
         }
+#endif
         #endregion
 
         #region GetTechnicianModeSettings
@@ -108,6 +114,7 @@ namespace Syndll2
             return GetTechnicianModeSettingsResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets the current "technician mode" settings from the terminal.
         /// </summary>
@@ -116,6 +123,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HPG");
             return GetTechnicianModeSettingsResult(response);
         }
+#endif
 
         private static TechnicianModeSettings GetTechnicianModeSettingsResult(Response response)
         {
@@ -139,6 +147,7 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that sends new "technician mode" settings to the terminal.
         /// </summary>
@@ -149,6 +158,7 @@ namespace Syndll2
             response = SetTechnicianModeSettings_AdjustResponse(response, firmwareRevision);
             ValidateAcknowledgment(response);
         }
+#endif
 
         private Response SetTechnicianModeSettings_AdjustResponse(Response response, int firmwareRevision)
         {
@@ -174,6 +184,7 @@ namespace Syndll2
             return GetHardwareConfigurationResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets the hardware configuration information from the terminal.
         /// </summary>
@@ -182,6 +193,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HG");
             return GetHardwareConfigurationResult(response);
         }
+#endif
 
         private static HardwareConfiguration GetHardwareConfigurationResult(Response response)
         {
@@ -203,6 +215,7 @@ namespace Syndll2
             return GetNetworkConfigurationResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets the network configuration information from the terminal.
         /// </summary>
@@ -211,6 +224,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HN");
             return GetNetworkConfigurationResult(response);
         }
+#endif
 
         private static NetworkConfiguration GetNetworkConfigurationResult(Response response)
         {
@@ -232,6 +246,7 @@ namespace Syndll2
             return GetFingerprintUnitStatusResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets the fingerprint unit status from the terminal.
         /// </summary>
@@ -240,6 +255,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0");
             return GetFingerprintUnitStatusResult(response);
         }
+#endif
 
         private static FingerprintUnitStatus GetFingerprintUnitStatusResult(Response response)
         {
@@ -263,6 +279,7 @@ namespace Syndll2
             return GetFullDataBlockResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets a full block of data from the terminal.
         /// Caution - it only returns *full* blocks.  If a data block is not filled out, it does not return anything.
@@ -273,6 +290,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.GetFullDataBlock);
             return GetFullDataBlockResult(response);
         }
+#endif
 
         /// <summary>
         /// Gets a full block of data from the terminal, and acknowledges receipt before returning.
@@ -288,6 +306,7 @@ namespace Syndll2
             return data;
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets a full block of data from the terminal, and acknowledges receipt before returning.
         /// Caution - it only returns *full* blocks.  If a data block is not filled out, it does not return anything.
@@ -301,6 +320,7 @@ namespace Syndll2
 
             return data;
         }
+#endif
 
         private static string GetFullDataBlockResult(Response response)
         {
@@ -332,6 +352,7 @@ namespace Syndll2
             return GetDataResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets data from the terminal.
         /// After recording the data, you should call <see cref="AcknowledgeLastRecordAsync"/>.
@@ -341,6 +362,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.GetData);
             return GetDataResult(response);
         }
+#endif
 
         /// <summary>
         /// Gets data from the terminal, and acknowledges receipt before returning.
@@ -354,6 +376,7 @@ namespace Syndll2
             return data;
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets data from the terminal, and acknowledges receipt before returning.
         /// </summary>
@@ -365,6 +388,7 @@ namespace Syndll2
 
             return data;
         }
+#endif
 
         private static string GetDataResult(Response response)
         {
@@ -396,6 +420,7 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that acknowledges the last record sent from the terminal, so the terminal can delete it from its memory.
         /// Use after a call to <see cref="GetDataAsync"/> or <see cref="GetFullDataBlockAsync"/>
@@ -405,6 +430,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.AcknowledgeLastRecord);
             ValidateAcknowledgment(response);
         }
+#endif
         #endregion
 
         #region ClearBuffer
@@ -417,6 +443,7 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that directs the terminal to clear all transmitted and acknowledged records stored in its memory buffer.
         /// </summary>
@@ -425,6 +452,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.ClearBuffer);
             ValidateAcknowledgment(response);
         }
+#endif
         #endregion
 
         #region Halt
@@ -437,6 +465,7 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that directs the terminal to terminate the normal operation mode and proceed to programming mode.
         /// </summary>
@@ -445,6 +474,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.Halt);
             ValidateAcknowledgment(response);
         }
+#endif
         #endregion
 
         #region Run
@@ -457,6 +487,7 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that directs the terminal to terminate programming mode and proceed to the normal operation mode.
         /// </summary>
@@ -465,8 +496,9 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.Run);
             ValidateAcknowledgment(response);
         }
+#endif
         #endregion
-        
+
         #region DisplayMessage
 
         /// <summary>
@@ -482,6 +514,7 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that displays a message on the terminal's screen.
         /// </summary>
@@ -494,6 +527,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.DisplayMessage, request);
             ValidateAcknowledgment(response);
         }
+#endif
 
         private string DisplayMessage_ValidateInput(string message, int displaySeconds, TextAlignment alignment)
         {
@@ -552,6 +586,7 @@ namespace Syndll2
             return GetSingleRecordResult(response);
         }
 
+#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets a single record from a table, by a key.
         /// </summary>
@@ -565,6 +600,7 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, data);
             return GetSingleRecordResult(response);
         }
+#endif
 
         private static SingleRecord GetSingleRecordResult(Response response)
         {
@@ -595,10 +631,12 @@ namespace Syndll2
             throw new NotImplementedException();
         }
 
+#if NET_45
         public async Task SetTerminalTimeZoneAsync(TimeZoneInfo timeZone)
         {
             throw new NotImplementedException();
         }
+#endif
         #endregion
     }
 }
