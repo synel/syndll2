@@ -12,7 +12,7 @@ namespace Syndll2.Tests.ProgrammingTests
             using (var client = TestSettings.Connect())
             using (var p = client.Terminal.Programming())
             {
-                p.UploadTableFromFile('V', 800, @"TestData\msg800.rdy");
+                p.UploadTableFromFile(@"TestData\msg800.rdy");
             }
         }
 
@@ -22,7 +22,7 @@ namespace Syndll2.Tests.ProgrammingTests
             using (var client = await TestSettings.ConnectAsync())
             using (var p = client.Terminal.Programming())
             {
-                await p.UploadTableFromFileAsync('V', 800, @"TestData\msg800.rdy");
+                await p.UploadTableFromFileAsync(@"TestData\msg800.rdy");
             }
         }
 

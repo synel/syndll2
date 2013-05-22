@@ -40,17 +40,12 @@ namespace Syndll2
 
         #region UploadTable
         /// <summary>
-        /// Uploads an RDY file to a specific table in the terminal.
+        /// Uploads an RDY file to the terminal.
         /// </summary>
-        /// <param name="tableType">The table type.</param>
-        /// <param name="tableId">The table ID.</param>
         /// <param name="path">The path to the RDY file.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public void UploadTableFromFile(char tableType, int tableId, string path, bool replace = true)
+        public void UploadTableFromFile(string path, bool replace = true)
         {
-            if (tableId < 0 || tableId > 999)
-                throw new ArgumentOutOfRangeException("tableId", "Table ID must be between 0 and 999.");
-
             if (!string.Equals(Path.GetExtension(path), ".rdy", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Pass the full or relative path to a .RDY file.");
 
@@ -59,23 +54,18 @@ namespace Syndll2
 
             using (var stream = File.OpenRead(path))
             {
-                UploadTableFromStream(tableType, tableId, stream, replace);
+                UploadTableFromStream(stream, replace);
             }
         }
 
 #if NET_45
         /// <summary>
-        /// Returns an awaitable task that uploads an RDY file to a specific table in the terminal.
+        /// Returns an awaitable task that uploads an RDY file to the terminal.
         /// </summary>
-        /// <param name="tableType">The table type.</param>
-        /// <param name="tableId">The table ID.</param>
         /// <param name="path">The path to the RDY file.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public async Task UploadTableFromFileAsync(char tableType, int tableId, string path, bool replace = true)
+        public async Task UploadTableFromFileAsync(string path, bool replace = true)
         {
-            if (tableId < 0 || tableId > 999)
-                throw new ArgumentOutOfRangeException("tableId", "Table ID must be between 0 and 999.");
-
             if (!string.Equals(Path.GetExtension(path), ".rdy", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Pass the full or relative path to a .RDY file.");
 
@@ -84,22 +74,18 @@ namespace Syndll2
 
             using (var stream = File.OpenRead(path))
             {
-                await UploadTableFromStreamAsync(tableType, tableId, stream, replace);
+                await UploadTableFromStreamAsync(stream, replace);
             }
         }
 #endif
 
         /// <summary>
-        /// Uploads a stream containing an RDY file to a specific table in the terminal.
+        /// Uploads a stream containing an RDY file to the terminal.
         /// </summary>
-        /// <param name="tableType">The table type.</param>
-        /// <param name="tableId">The table ID.</param>
         /// <param name="stream">The stream containing the RDY file content.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public void UploadTableFromStream(char tableType, int tableId, Stream stream, bool replace = true)
+        public void UploadTableFromStream(Stream stream, bool replace = true)
         {
-            if (tableId < 0 || tableId > 999)
-                throw new ArgumentOutOfRangeException("tableId", "Table ID must be between 0 and 999.");
 
             var rdy = RdyFile.Read(stream);
 
@@ -110,6 +96,10 @@ namespace Syndll2
             // create a buffer and append the header
             var buffer = new StringBuilder(MaxBlockSize * 2);
             buffer.Append(rdy.Header);
+
+            // get the table information from the header
+            var tableType = rdy.Header.TableType;
+            var tableId = rdy.Header.TableId;
 
             foreach (var record in rdy.Records)
             {
@@ -136,17 +126,12 @@ namespace Syndll2
 
 #if NET_45
         /// <summary>
-        /// Returns an awaitable task that uploads a stream containing an RDY file to a specific table in the terminal.
+        /// Returns an awaitable task that uploads a stream containing an RDY file to the terminal.
         /// </summary>
-        /// <param name="tableType">The table type.</param>
-        /// <param name="tableId">The table ID.</param>
         /// <param name="stream">The stream containing the RDY file content.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public async Task UploadTableFromStreamAsync(char tableType, int tableId, Stream stream, bool replace = true)
+        public async Task UploadTableFromStreamAsync(Stream stream, bool replace = true)
         {
-            if (tableId < 0 || tableId > 999)
-                throw new ArgumentOutOfRangeException("tableId", "Table ID must be between 0 and 999.");
-
             var rdy = RdyFile.Read(stream);
 
             // calculate how many blocks we'll need to send
@@ -156,6 +141,10 @@ namespace Syndll2
             // create a buffer and append the header
             var buffer = new StringBuilder(MaxBlockSize * 2);
             buffer.Append(rdy.Header);
+
+            // get the table information from the header
+            var tableType = rdy.Header.TableType;
+            var tableId = rdy.Header.TableId;
 
             foreach (var record in rdy.Records)
             {
