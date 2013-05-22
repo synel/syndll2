@@ -21,6 +21,7 @@ namespace Syndll2
         private readonly StreamWriter _writer;
         private readonly TerminalOperations _terminal;
         private readonly byte _terminalId;
+        private bool _disposed;
 
 
         /// <summary>
@@ -80,9 +81,22 @@ namespace Syndll2
         /// </summary>
         public void Dispose()
         {
-            _connection.Dispose();
-            _reader.Dispose();
-            _writer.Dispose();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                _connection.Dispose();
+                _reader.Dispose();
+                _writer.Dispose();
+            }
+
+            _disposed = true;
         }
 
         private const int PacketOverheadSize = 7;

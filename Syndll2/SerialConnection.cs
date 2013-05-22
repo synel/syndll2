@@ -9,6 +9,8 @@ namespace Syndll2
     /// </summary>
     internal class SerialConnection : IConnection
     {
+        private bool _disposed;
+
         public Stream Stream
         {
             get
@@ -27,7 +29,20 @@ namespace Syndll2
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                throw new NotImplementedException();
+            }
+
+            _disposed = true;
         }
 
         private SerialConnection()

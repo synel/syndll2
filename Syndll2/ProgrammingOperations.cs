@@ -14,6 +14,7 @@ namespace Syndll2
         const int MaxBlockSize = 119; // per spec section 3.3.2 and 3.3.4.
 
         private readonly SynelClient _client;
+        private bool _disposed;
 
         internal ProgrammingOperations(SynelClient client)
         {
@@ -23,7 +24,18 @@ namespace Syndll2
 
         public void Dispose()
         {
-            _client.Terminal.Run();
+            Dispose(true);
+        }
+        
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+                _client.Terminal.Run();
+
+            _disposed = true;
         }
 
         #region UploadTable

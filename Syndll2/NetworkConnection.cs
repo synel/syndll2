@@ -17,6 +17,7 @@ namespace Syndll2
         private readonly IPEndPoint _endPoint;
         private readonly TcpClient _tcpClient;
         private NetworkStream _stream;
+        private bool _disposed;
 
         public bool Connected
         {
@@ -144,8 +145,21 @@ namespace Syndll2
 
         public void Dispose()
         {
-            Disconnect();
-            _stream.Dispose();
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                Disconnect();
+                _stream.Dispose();
+            }
+
+            _disposed = true;
         }
     }
 }
