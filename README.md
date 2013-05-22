@@ -47,31 +47,35 @@ After a stable version is published, you will no longer have to pass the `-Pre` 
 
 **Synchronously**  (.Net 4.0 or 4.5)
 
-    using (var client = SynelClient.Connect(HostAddress))
-    {
-        // get a data record from the terminal
-        var data = client.Terminal.GetData();
-        
-        // do something with the data here (save it to db, send it over the web, etc.)
-        ...
-        
-        // acknowledge the record so the terminal will clear it
-        client.AcknowledgeLastRecord();
-    }
+```csharp
+using (var client = SynelClient.Connect(HostAddress))
+{
+    // get a data record from the terminal
+    var data = client.Terminal.GetData();
+    
+    // do something with the data here (save it to db, send it over the web, etc.)
+    ...
+    
+    // acknowledge the record so the terminal will clear it
+    client.AcknowledgeLastRecord();
+}
+```
     
 **Asynchronously**  (requires .Net 4.5)
 
-    using (var client = await SynelClient.ConnectAsync(HostAddress))
-    {
-        // get a data record from the terminal
-        var data = await client.Terminal.GetDataAsync();
-        
-        // do something with the data here (save it to db, send it over the web, etc.)
-        ...
-        
-        // acknowledge the record so the terminal will clear it
-        await client.AcknowledgeLastRecordAsync();
-    }
+```csharp
+using (var client = await SynelClient.ConnectAsync(HostAddress))
+{
+    // get a data record from the terminal
+    var data = await client.Terminal.GetDataAsync();
+    
+    // do something with the data here (save it to db, send it over the web, etc.)
+    ...
+    
+    // acknowledge the record so the terminal will clear it
+    await client.AcknowledgeLastRecordAsync();
+}
+```
     
 ### Current Status / Road Map
 
