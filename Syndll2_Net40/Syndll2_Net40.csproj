@@ -81,8 +81,14 @@
     <Compile Include="..\Syndll2\Data\NetworkConfiguration.cs">
       <Link>Data\NetworkConfiguration.cs</Link>
     </Compile>
-    <Compile Include="..\Syndll2\Data\ProgramDebugStatus.cs">
-      <Link>Data\ProgramDebugStatus.cs</Link>
+    <Compile Include="..\Syndll2\Data\ProgrammingOperationStatus.cs">
+      <Link>Data\ProgrammingOperationStatus.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\Data\ProgrammingStatus.cs">
+      <Link>Data\ProgrammingStatus.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\Data\RdyFile.cs">
+      <Link>Data\RdyFile.cs</Link>
     </Compile>
     <Compile Include="..\Syndll2\Data\SearchResult.cs">
       <Link>Data\SearchResult.cs</Link>
@@ -111,6 +117,9 @@
     <Compile Include="..\Syndll2\Data\TimeAndFunction.cs">
       <Link>Data\TimeAndFunction.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\Extensions.cs">
+      <Link>Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\GateKeeper.cs">
       <Link>GateKeeper.cs</Link>
     </Compile>
@@ -122,6 +131,9 @@
     </Compile>
     <Compile Include="..\Syndll2\PrimaryResponseCommand.cs">
       <Link>PrimaryResponseCommand.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\ProgrammingOperations.cs">
+      <Link>ProgrammingOperations.cs</Link>
     </Compile>
     <Compile Include="..\Syndll2\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>

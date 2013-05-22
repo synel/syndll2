@@ -19,6 +19,15 @@ namespace Syndll2
             _client = client;
         }
 
+        /// <summary>
+        /// Puts the terminal in programming mode, and exposes programming functions.
+        /// Call this from a <code>using</code> block, or otherwise dispose of it to exit programming mode.
+        /// </summary>
+        public ProgrammingOperations Programming()
+        {
+            return new ProgrammingOperations(_client);
+        }
+
         #region GetTerminalStatus
         /// <summary>
         /// Gets the status information from the terminal.
@@ -459,20 +468,22 @@ namespace Syndll2
         /// <summary>
         /// Directs the terminal to terminate the normal operation mode and proceed to programming mode.
         /// </summary>
-        public void Halt()
+        public ProgrammingStatus Halt()
         {
             var response = _client.SendAndReceive(RequestCommand.Halt);
             ValidateAcknowledgment(response);
+            return ProgrammingStatus.Parse(response.Data);
         }
 
 #if NET_45
         /// <summary>
         /// Returns an awaitable task that directs the terminal to terminate the normal operation mode and proceed to programming mode.
         /// </summary>
-        public async Task HaltAsync()
+        public async Task<ProgrammingStatus> HaltAsync()
         {
             var response = await _client.SendAndReceiveAsync(RequestCommand.Halt);
             ValidateAcknowledgment(response);
+            return ProgrammingStatus.Parse(response.Data);
         }
 #endif
         #endregion
@@ -481,20 +492,22 @@ namespace Syndll2
         /// <summary>
         /// Directs the terminal to terminate programming mode and proceed to the normal operation mode.
         /// </summary>
-        public void Run()
+        public ProgrammingStatus Run()
         {
             var response = _client.SendAndReceive(RequestCommand.Run);
             ValidateAcknowledgment(response);
+            return ProgrammingStatus.Parse(response.Data);
         }
 
 #if NET_45
         /// <summary>
         /// Returns an awaitable task that directs the terminal to terminate programming mode and proceed to the normal operation mode.
         /// </summary>
-        public async Task RunAsync()
+        public async Task<ProgrammingStatus> RunAsync()
         {
             var response = await _client.SendAndReceiveAsync(RequestCommand.Run);
             ValidateAcknowledgment(response);
+            return ProgrammingStatus.Parse(response.Data);
         }
 #endif
         #endregion
@@ -564,7 +577,8 @@ namespace Syndll2
         #endregion
 
         #region ValidateAcknowledgment
-        private static void ValidateAcknowledgment(Response response)
+
+        internal static void ValidateAcknowledgment(Response response)
         {
             if (response.Command != PrimaryResponseCommand.Acknowledged)
                 throw new InvalidDataException(string.Format("Expected acknowledgment.  Got: {0}  Data: {1}", response.Command, response.Data));
@@ -622,7 +636,6 @@ namespace Syndll2
             throw new NotImplementedException();
         }
         #endregion
-
 
         #region SetTerminalTimeZone
         public void SetTerminalTimeZone(TimeZoneInfo timeZone)

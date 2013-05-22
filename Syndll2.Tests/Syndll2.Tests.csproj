@@ -66,6 +66,8 @@
     <Compile Include="DataTests\ClearBufferTests.cs" />
     <Compile Include="DataTests\AcknowledgeLastRecordTests.cs" />
     <Compile Include="DataTests\GetDataTests.cs" />
+    <Compile Include="ProgrammingTests\DeleteTableTests.cs" />
+    <Compile Include="ProgrammingTests\UploadTableTests.cs" />
     <Compile Include="ProgrammingTests\OneRecordTests.cs" />
     <Compile Include="ProgrammingTests\ProgrammingModeTests.cs" />
     <Compile Include="StatusTests\GetFingerprintUnitStatusTests.cs" />
@@ -98,6 +100,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Properties\Syndll2.Tests.snk" />
+    <Content Include="TestData\msg800.rdy">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup />
   <Choose>

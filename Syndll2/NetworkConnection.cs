@@ -20,7 +20,7 @@ namespace Syndll2
 
         public bool Connected
         {
-            get { return _tcpClient.Client != null && _tcpClient.Connected; }
+            get { return _tcpClient != null && _tcpClient.Connected; }
         }
 
         public Stream Stream

@@ -80,9 +80,9 @@ namespace Syndll2
         /// </summary>
         public void Dispose()
         {
+            _connection.Dispose();
             _reader.Dispose();
             _writer.Dispose();
-            _connection.Dispose();
         }
 
         private const int PacketOverheadSize = 7;
