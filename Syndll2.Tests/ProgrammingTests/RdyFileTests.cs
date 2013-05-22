@@ -17,6 +17,7 @@ namespace Syndll2.Tests.ProgrammingTests
             }
 
             Assert.IsNotNull(rdy);
+            Assert.IsFalse(rdy.IsDirectoryFile);
             Assert.AreEqual('V', rdy.Header.TableType);
             Assert.AreEqual(800, rdy.Header.TableId);
             Assert.AreEqual(64, rdy.Header.RecordCount);
@@ -32,9 +33,11 @@ namespace Syndll2.Tests.ProgrammingTests
             }
 
             Assert.IsNotNull(rdy);
+            Assert.IsTrue(rdy.IsDirectoryFile);
             Assert.AreEqual('z', rdy.Header.TableType);
             Assert.AreEqual(1, rdy.Header.TableId);
             Assert.AreEqual(115, rdy.Header.TotalCharacters);
+            Assert.AreEqual(4, rdy.Records);
         }
     }
 }

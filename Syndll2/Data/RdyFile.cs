@@ -30,6 +30,12 @@ namespace Syndll2.Data
         public IList<RdyRecord> Records { get; private set; }
 
         /// <summary>
+        /// Gets a value that indicates whether or not this is a "directory" file.
+        /// Directory files (such as dir001.rdy) do not get uploaded to the terminal.
+        /// </summary>
+        public bool IsDirectoryFile { get; private set; }
+
+        /// <summary>
         /// Gets a dictionary representing the records.
         /// Valid for keyed records only. Returns null for non-keyed records.
         /// </summary>
