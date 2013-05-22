@@ -314,5 +314,27 @@ namespace Syndll2
 #endif
         #endregion
 
+        #region EraseAllMemoryFromTerminal
+        /// <summary>
+        /// ERASES ALL MEMORY FROM THE TERMINAL!
+        /// </summary>
+        public void EraseAllMemoryFromTerminal()
+        {
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "F");
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that ERASES ALL MEMORY FROM THE TERMINAL!
+        /// </summary>
+        public async Task EraseAllMemoryFromTerminalAsync()
+        {
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "F");
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+#endif
+        #endregion
+
     }
 }
