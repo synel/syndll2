@@ -13,11 +13,10 @@ namespace Syndll2
             if (sb.Length < startIndex + length)
                 throw new ArgumentException();
 
-            var ca = new char[length];
-            sb.CopyTo(startIndex, ca, 0, length);
+            var s = sb.ToString(startIndex, length);
             sb.Remove(startIndex, length);
 
-            return new string(ca);
+            return s;
         }
     }
 }
