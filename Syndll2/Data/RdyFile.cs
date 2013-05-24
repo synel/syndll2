@@ -72,8 +72,22 @@ namespace Syndll2.Data
                 var header = rdy.ReadHeader(reader);
                 rdy.Header = RdyHeader.Parse(header);
 
-                // Read and load the records in the body
-                rdy.ReadBody(reader);
+                // See if we are working with a directory file
+                if (rdy.Header.TableType == 'z' && rdy.Header.TableId == 1)
+                {
+                    rdy.IsDirectoryFile = true;
+
+                    // Put data back in the buffer
+                    rdy._buffer.Insert(0, header.Substring(9));
+
+                    // Read the body as directory data
+                    rdy.ReadDirBody(reader);
+                }
+                else
+                {
+                    // Read and load the records in the body
+                    rdy.ReadBody(reader);
+                }
             }
 
             return rdy;
@@ -99,8 +113,22 @@ namespace Syndll2.Data
                 var header = await rdy.ReadHeaderAsync(reader);
                 rdy.Header = RdyHeader.Parse(header);
 
-                // Read and load the records in the body
-                await rdy.ReadBodyAsync(reader);
+                // See if we are working with a directory file
+                if (rdy.Header.TableType == 'z' && rdy.Header.TableId == 1)
+                {
+                    rdy.IsDirectoryFile = true;
+
+                    // Put data back in the buffer
+                    rdy._buffer.Insert(0, header.Substring(9));
+
+                    // Read the body as directory data
+                    await rdy.ReadDirBodyAsync(reader);
+                }
+                else
+                {
+                    // Read and load the records in the body
+                    await rdy.ReadBodyAsync(reader);
+                }
             }
 
             return rdy;
@@ -172,6 +200,64 @@ namespace Syndll2.Data
             if (Records.Count != Header.RecordCount)
                 throw new InvalidDataException(string.Format("The RDY header reported {0} records, but {1} records were in the RDY file.", Header.RecordCount,
                                                              Records.Count));
+        }
+#endif
+
+        private void ReadDirBody(StreamReader reader)
+        {
+            // Initialize a new list of records
+            Records = new List<RdyRecord>();
+
+            // file records are followed with a string of 16 Y characters
+            var terminator = new string('Y', 16);
+
+            // Read while there is data
+            while (!reader.EndOfStream)
+            {
+                // read a line to the buffer
+                ReadLineToBuffer(reader);
+
+                // see if the buffer contains a terminator yet.
+                var b = _buffer.ToString();
+                var i = b.IndexOf(terminator, StringComparison.Ordinal);
+                if (i == -1) continue;
+
+                // cut the data before the terminator and write it to a new record.
+                var s = _buffer.Cut(0, i);
+                Records.Add(new RdyRecord(s));
+
+                // remove the terminator from the buffer.
+                _buffer.Remove(0, terminator.Length);
+            }
+        }
+
+#if NET_45
+        private async Task ReadDirBodyAsync(StreamReader reader)
+        {
+            // Initialize a new list of records
+            Records = new List<RdyRecord>();
+
+            // file records are followed with a string of 16 Y characters
+            var terminator = new string('Y', 16);
+
+            // Read while there is data
+            while (!reader.EndOfStream)
+            {
+                // read a line to the buffer
+                await ReadLineToBufferAsync(reader);
+
+                // see if the buffer contains a terminator yet.
+                var b = _buffer.ToString();
+                var i = b.IndexOf(terminator, StringComparison.Ordinal);
+                if (i == -1) continue;
+
+                // cut the data before the terminator and write it to a new record.
+                var s = _buffer.Cut(0, i);
+                Records.Add(new RdyRecord(s));
+
+                // remove the terminator from the buffer.
+                _buffer.Remove(0, terminator.Length);
+            }
         }
 #endif
 
@@ -277,6 +363,12 @@ namespace Syndll2.Data
                 if (!int.TryParse(data.Substring(4, 5), NumberStyles.None, CultureInfo.InvariantCulture, out i))
                     throw new InvalidDataException("Couldn't parse the total number of characters from the RDY header.");
                 header.TotalCharacters = i;
+
+                if (header.TableType == 'z' && header.TableId == 1)
+                {
+                    // z001 indicates a "directory file", which has a truncated header.  Exit early.
+                    return header;
+                }
 
                 header.TableVersion = data[9];
 

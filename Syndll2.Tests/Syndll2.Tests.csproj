@@ -107,6 +107,8 @@
     <Content Include="TestData\dir001.rdy">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="TestData\gen100.rdy" />
+    <None Include="TestData\sys001.rdy" />
   </ItemGroup>
   <ItemGroup />
   <Choose>
