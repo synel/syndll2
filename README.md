@@ -87,10 +87,10 @@ This code is safe for production, but should still be considered *unstable*.
  - Retreiving basic data
  - Various commands for getting status
  - Setting the terminal's clock
+ - Programming operations, such as uploading a terminal program.
  
 **Not yet implemented**
  - Sending and retrieving fingerprint templates.
- - Programming a terminal application.
  - Serial or modem connection.
  - Miscellaneous other lesser-used functions.
 
