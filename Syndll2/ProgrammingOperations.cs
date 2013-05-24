@@ -26,7 +26,7 @@ namespace Syndll2
         {
             Dispose(true);
         }
-        
+
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed)
@@ -52,9 +52,30 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
+            // Read the file into an RDY
+            RdyFile rdy;
             using (var stream = File.OpenRead(path))
             {
-                UploadTableFromStream(stream, replace);
+                rdy = RdyFile.Read(stream);
+            }
+
+            // Check for directory files
+            if (rdy.IsDirectoryFile)
+            {
+                // Upload each file referenced separately
+                foreach (var record in rdy.Records)
+                {
+                    // find the file name
+                    var p = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar + record.Data;
+
+                    // recurse to upload each file
+                    UploadTableFromFile(p, replace);
+                }
+            }
+            else
+            {
+                // Just upload the single RDY
+                UploadTableFromRdy(rdy, replace);
             }
         }
 
@@ -72,9 +93,30 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
+            // Read the file into an RDY
+            RdyFile rdy;
             using (var stream = File.OpenRead(path))
             {
-                await UploadTableFromStreamAsync(stream, replace);
+                rdy = await RdyFile.ReadAsync(stream);
+            }
+
+            // Check for directory files
+            if (rdy.IsDirectoryFile)
+            {
+                // Upload each file referenced separately
+                foreach (var record in rdy.Records)
+                {
+                    // find the file name
+                    var p = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar + record.Data;
+
+                    // recurse to upload each file
+                    await UploadTableFromFileAsync(p, replace);
+                }
+            }
+            else
+            {
+                // Just upload the single RDY
+                await UploadTableFromRdyAsync(rdy, replace);
             }
         }
 #endif
@@ -86,8 +128,33 @@ namespace Syndll2
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
         public void UploadTableFromStream(Stream stream, bool replace = true)
         {
-
             var rdy = RdyFile.Read(stream);
+            UploadTableFromRdy(rdy, replace);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that uploads a stream containing an RDY file to the terminal.
+        /// </summary>
+        /// <param name="stream">The stream containing the RDY file content.</param>
+        /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
+        public async Task UploadTableFromStreamAsync(Stream stream, bool replace = true)
+        {
+            var rdy = RdyFile.Read(stream);
+            await UploadTableFromRdyAsync(rdy, replace);
+        }
+#endif
+
+        /// <summary>
+        /// Uploads an RDY file object to the terminal.
+        /// </summary>
+        /// <param name="rdy">The RDY file object.</param>
+        /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
+        public void UploadTableFromRdy(RdyFile rdy, bool replace = true)
+        {
+            // make sure we're not uploading a directory file
+            if (rdy.IsDirectoryFile)
+                throw new InvalidOperationException("Cannot upload a directory file to the terminal.");
 
             // calculate how many blocks we'll need to send
             var totalBlocks = (int)Math.Ceiling(rdy.Header.TotalCharacters / (double)MaxBlockSize);
@@ -126,13 +193,15 @@ namespace Syndll2
 
 #if NET_45
         /// <summary>
-        /// Returns an awaitable task that uploads a stream containing an RDY file to the terminal.
+        /// Returns an awaitable task that uploads an RDY file object to the terminal.
         /// </summary>
-        /// <param name="stream">The stream containing the RDY file content.</param>
+        /// <param name="rdy">The RDY file object.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public async Task UploadTableFromStreamAsync(Stream stream, bool replace = true)
+        public async Task UploadTableFromRdyAsync(RdyFile rdy, bool replace = true)
         {
-            var rdy = RdyFile.Read(stream);
+            // make sure we're not uploading a directory file
+            if (rdy.IsDirectoryFile)
+                throw new InvalidOperationException("Cannot upload a directory file to the terminal.");
 
             // calculate how many blocks we'll need to send
             var totalBlocks = (int)Math.Ceiling(rdy.Header.TotalCharacters / (double)MaxBlockSize);

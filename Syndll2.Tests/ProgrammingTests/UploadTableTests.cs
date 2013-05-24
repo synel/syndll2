@@ -26,5 +26,25 @@ namespace Syndll2.Tests.ProgrammingTests
             }
         }
 
+        [TestMethod]
+        public void Can_Upload_Tables_From_Directory_File()
+        {
+            using (var client = TestSettings.Connect())
+            using (var p = client.Terminal.Programming())
+            {
+                p.UploadTableFromFile(@"TestData\dir001.rdy");
+            }
+        }
+
+        [TestMethod]
+        public async Task Can_Upload_Tables_From_Directory_File_Async()
+        {
+            using (var client = TestSettings.Connect())
+            using (var p = client.Terminal.Programming())
+            {
+                await p.UploadTableFromFileAsync(@"TestData\dir001.rdy");
+            }
+        }
+
     }
 }
