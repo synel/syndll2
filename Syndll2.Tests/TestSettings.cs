@@ -24,14 +24,14 @@ namespace Syndll2.Tests
             }
         }
 
-        public static byte TerminalId
+        public static int TerminalId
         {
             get
             {
-                byte terminalId;
-                return byte.TryParse(ConfigurationManager.AppSettings["TerminalId"], out terminalId)
+                int terminalId;
+                return int.TryParse(ConfigurationManager.AppSettings["TerminalId"], out terminalId)
                            ? terminalId
-                           : (byte) 0;
+                           : 0;
             }
         }
 

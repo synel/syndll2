@@ -58,7 +58,7 @@ namespace Syndll2
             return (byte) (c - '0');
         }
 
-        public static char TerminalIdToChar(byte terminalId)
+        public static char TerminalIdToChar(int terminalId)
         {
             if (terminalId > 31)
                 throw new ArgumentOutOfRangeException("terminalId", terminalId,

@@ -20,7 +20,7 @@ namespace Syndll2
         private readonly StreamReader _reader;
         private readonly StreamWriter _writer;
         private readonly TerminalOperations _terminal;
-        private readonly byte _terminalId;
+        private readonly int _terminalId;
         private bool _disposed;
 
 
@@ -37,7 +37,7 @@ namespace Syndll2
         /// </summary>
         public TerminalOperations Terminal { get { return _terminal; } }
 
-        private SynelClient(IConnection connection, byte terminalId)
+        private SynelClient(IConnection connection, int terminalId)
         {
             if (terminalId > 31)
                 throw new ArgumentOutOfRangeException("terminalId", terminalId,
@@ -56,7 +56,7 @@ namespace Syndll2
         /// <param name="host">The terminal's IP address or DNS name.</param>
         /// <param name="port">The TCP port to use to connect to the terminal.  Defaults to 3734 if not provided.</param>
         /// <param name="terminalId">The terminal's Terminal ID.  Defaults to 0 if not provided.</param>
-        public static SynelClient Connect(string host, int port = 3734, byte terminalId = 0)
+        public static SynelClient Connect(string host, int port = 3734, int terminalId = 0)
         {
             var connection = NetworkConnection.Connect(host, port);
             return new SynelClient(connection, terminalId);
@@ -69,7 +69,7 @@ namespace Syndll2
         /// <param name="host">The terminal's IP address or DNS name.</param>
         /// <param name="port">The TCP port to use to connect to the terminal.  Defaults to 3734 if not provided.</param>
         /// <param name="terminalId">The terminal's Terminal ID.  Defaults to 0 if not provided.</param>
-        public static async Task<SynelClient> ConnectAsync(string host, int port = 3734, byte terminalId = 0)
+        public static async Task<SynelClient> ConnectAsync(string host, int port = 3734, int terminalId = 0)
         {
             var connection = await NetworkConnection.ConnectAsync(host, port);
             return new SynelClient(connection, terminalId);
