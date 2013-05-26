@@ -35,8 +35,8 @@ namespace Syndll2
             _tcpClient = new TcpClient
                 {
                     // todo: see if these timeout values need adjusting
-                    ReceiveTimeout = 500,
-                    SendTimeout = 500
+                    ReceiveTimeout = 5000,
+                    SendTimeout = 5000
                 };
         }
 
