@@ -56,9 +56,10 @@ namespace Syndll2
         /// <param name="host">The terminal's IP address or DNS name.</param>
         /// <param name="port">The TCP port to use to connect to the terminal.  Defaults to 3734 if not provided.</param>
         /// <param name="terminalId">The terminal's Terminal ID.  Defaults to 0 if not provided.</param>
-        public static SynelClient Connect(string host, int port = 3734, int terminalId = 0)
+        /// <param name="timeout">The amount of time before the connection will timeout. Defaults to 2 seconds.</param>
+        public static SynelClient Connect(string host, int port = 3734, int terminalId = 0, TimeSpan timeout = default(TimeSpan))
         {
-            var connection = NetworkConnection.Connect(host, port);
+            var connection = NetworkConnection.Connect(host, port, timeout);
             return new SynelClient(connection, terminalId);
         }
 
@@ -69,9 +70,10 @@ namespace Syndll2
         /// <param name="host">The terminal's IP address or DNS name.</param>
         /// <param name="port">The TCP port to use to connect to the terminal.  Defaults to 3734 if not provided.</param>
         /// <param name="terminalId">The terminal's Terminal ID.  Defaults to 0 if not provided.</param>
-        public static async Task<SynelClient> ConnectAsync(string host, int port = 3734, int terminalId = 0)
+        /// <param name="timeout">The amount of time before the connection will timeout. Defaults to 2 seconds.</param>
+        public static async Task<SynelClient> ConnectAsync(string host, int port = 3734, int terminalId = 0, TimeSpan timeout = default(TimeSpan))
         {
-            var connection = await NetworkConnection.ConnectAsync(host, port);
+            var connection = await NetworkConnection.ConnectAsync(host, port, timeout);
             return new SynelClient(connection, terminalId);
         }
 #endif
