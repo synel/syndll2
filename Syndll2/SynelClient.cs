@@ -242,7 +242,7 @@ namespace Syndll2
             if (!_connection.Stream.CanWrite)
                 throw new InvalidOperationException("The stream cannot be written to.");
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + command);
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + GetTraceString(command));
             
             _writer.Write(command);
             _writer.Flush();
@@ -259,7 +259,7 @@ namespace Syndll2
             if (!_connection.Stream.CanWrite)
                 throw new InvalidOperationException("The stream cannot be written to.");
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + command);
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + GetTraceString(command));
             
             await _writer.WriteAsync(command);
             await _writer.FlushAsync();
@@ -292,17 +292,7 @@ namespace Syndll2
             }
 
             var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
-#if DEBUG
-            var d = s.Length == 0
-                        ? "(NO DATA)"
-                        : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
-                           .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
-                           .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
-                           .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
-
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
-#endif
-
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + GetTraceString(s));
             return s;
         }
 
@@ -337,20 +327,20 @@ namespace Syndll2
             }
 
             var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
-#if DEBUG
-            var d = s.Length == 0
-                        ? "(NO DATA)"
-                        : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
-                           .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
-                           .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
-                           .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
-
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + d);
-#endif
-
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + GetTraceString(s));
             return s;
         }
 #endif
+
+        private string GetTraceString(string s)
+        {
+            return s.Length == 0
+                       ? "(NO DATA)"
+                       : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
+                          .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
+                          .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
+                          .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
+        }
 
         #region Binary UCP connection (TODO)
 
@@ -402,7 +392,7 @@ namespace Syndll2
             packet[packet.Length - 1] = (byte)ControlChars.EOT;
 
             // Write the packet
-            Debug.WriteLine("{0}: Sending Bytes: {1}",
+            Trace.WriteLine("{0}: Sending Bytes: {1}",
                             Thread.CurrentThread.ManagedThreadId,
                             Util.ByteArrayToString(packet));
             _connection.Stream.Write(packet, 0, packet.Length);
@@ -453,7 +443,7 @@ namespace Syndll2
                 throw new InvalidDataException("Invalid CRC received from the terminal.");
 
             // Return just the data
-            Debug.WriteLine("{0}: Received Bytes: {1}{2}{3}",
+            Trace.WriteLine("{0}: Received Bytes: {1}{2}{3}",
                             Thread.CurrentThread.ManagedThreadId,
                             Util.ByteArrayToString(header),
                             Util.ByteArrayToString(data),

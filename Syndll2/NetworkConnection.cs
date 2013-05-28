@@ -45,7 +45,7 @@ namespace Syndll2
             var endPoint = GetEndPoint(host, port);
             var connection = new NetworkConnection(endPoint);
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connecting to terminal...");
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connecting to terminal...");
 
             // default timeout is two seconds
             if (timeout <= TimeSpan.Zero)
@@ -67,7 +67,7 @@ namespace Syndll2
             // Get the stream for the connection
             connection._stream = client.GetStream();
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connected!");
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connected!");
 
             return connection;
         }
@@ -78,7 +78,7 @@ namespace Syndll2
             var endPoint = GetEndPoint(host, port);
             var connection = new NetworkConnection(endPoint);
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connecting to terminal...");
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connecting to terminal...");
 
             // default timeout is two seconds
             if (timeout <= TimeSpan.Zero)
@@ -99,7 +99,7 @@ namespace Syndll2
             // Get the stream for the connection
             connection._stream = client.GetStream();
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connected!");
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connected!");
 
             return connection;
         }
@@ -131,7 +131,7 @@ namespace Syndll2
         {
             if (!Connected)
             {
-                Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Already disconnected.");
+                Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Already disconnected.");
                 GateKeeper.Exit(_endPoint);
                 return;
             }
@@ -140,7 +140,7 @@ namespace Syndll2
             _tcpClient.Close();
             GateKeeper.Exit(_endPoint);
 
-            Debug.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Disconnected.");
+            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Disconnected.");
         }
 
         public void Dispose()
