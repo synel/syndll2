@@ -126,6 +126,9 @@
     <Compile Include="..\Syndll2\IConnection.cs">
       <Link>IConnection.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\InvalidCrcException.cs">
+      <Link>InvalidCrcException.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\NetworkConnection.cs">
       <Link>NetworkConnection.cs</Link>
     </Compile>

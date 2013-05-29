@@ -70,6 +70,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="IConnection.cs" />
     <Compile Include="Data\TerminalData.cs" />
+    <Compile Include="InvalidCrcException.cs" />
     <Compile Include="NetworkConnection.cs" />
     <Compile Include="ProgrammingOperations.cs" />
     <Compile Include="SerialConnection.cs" />

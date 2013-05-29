@@ -23,7 +23,6 @@ namespace Syndll2
         private readonly int _terminalId;
         private bool _disposed;
 
-
         /// <summary>
         /// Gets a value indicating whether the client is connected to a terminal.
         /// </summary>
@@ -104,6 +103,7 @@ namespace Syndll2
         private const int PacketOverheadSize = 7;
         private const int MaxDataSize = 128;
         private const int MaxPacketSize = MaxDataSize + PacketOverheadSize;
+        private const int MaxCrcRetries = 10;
 
         /// <summary>
         /// Creates the full command string that is to be sent to the terminal.
@@ -153,15 +153,15 @@ namespace Syndll2
             if (s == null)
                 throw new ArgumentNullException("s");
 
-            // check data size
+            // check for small data size, which is also a bad crc
             if (s.Length < PacketOverheadSize)
-                throw new ArgumentException(string.Format("Packet size is too small! ({0} chars)", s.Length));
+                throw new InvalidCrcException("Invalid CRC received from the terminal.");
 
             // check crc
             var packet = s.Substring(0, s.Length - 5);
             var crc = s.Substring(s.Length - 5, 4);
             if (!SynelCRC.Verify(packet, crc))
-                throw new InvalidDataException("Invalid CRC received from the terminal.");
+                throw new InvalidCrcException("Invalid CRC received from the terminal.");
 
             // Get command
             var cmd = packet[0];
@@ -194,10 +194,27 @@ namespace Syndll2
         {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
+            
+            // CRC retry loop
+            for (int i = 1; i <= MaxCrcRetries; i++)
+            {
+                try
+                {
+                    // Send and receive
+                    var rawRequest = CreateCommand(requestCommand, dataToSend);
+                    Send(rawRequest);
+                    return ReceiveResponse();
+                }
+                catch (InvalidCrcException)
+                {
+                    // swallow these until the retry limit is reached
+                    if (i < MaxCrcRetries)
+                        Trace.WriteLine("Bad CRC.  Retrying...");
+                }
+            }
 
-            var rawRequest = CreateCommand(requestCommand, dataToSend);
-            var rawResponse = SendAndReceive(rawRequest);
-            return ParseResponse(rawResponse);
+            // We've hit the retry limit, throw a CRC exception.
+            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxCrcRetries));
         }
 
 #if NET_45
@@ -212,24 +229,30 @@ namespace Syndll2
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
 
-            var rawRequest = CreateCommand(requestCommand, dataToSend);
-            var rawResponse = await SendAndReceiveAsync(rawRequest);
-            return ParseResponse(rawResponse);
+            // CRC retry loop
+            for (int i = 1; i <= MaxCrcRetries; i++)
+            {
+                try
+                {
+                    // Send and Receive
+                    var rawRequest = CreateCommand(requestCommand, dataToSend);
+                    await SendAsync(rawRequest);
+                    return await ReceiveResponseAsync();
+                }
+                catch (InvalidCrcException)
+                {
+                    // swallow these until the retry limit is reached
+                    if (i < MaxCrcRetries)
+                        Trace.WriteLine("Bad CRC.  Retrying...");
+                }
+            }
+
+            // We've hit the retry limit, throw a CRC exception.
+            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxCrcRetries));
         }
 #endif
 
-        private string SendAndReceive(string command)
-        {
-            Send(command);
-            return Receive();
-        }
-
 #if NET_45
-        private async Task<string> SendAndReceiveAsync(string command)
-        {
-            await SendAsync(command);
-            return await ReceiveAsync();
-        }
 #endif
 
         private void Send(string command)
@@ -243,7 +266,7 @@ namespace Syndll2
                 throw new InvalidOperationException("The stream cannot be written to.");
 
             Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + GetTraceString(command));
-            
+
             _writer.Write(command);
             _writer.Flush();
         }
@@ -260,7 +283,7 @@ namespace Syndll2
                 throw new InvalidOperationException("The stream cannot be written to.");
 
             Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + GetTraceString(command));
-            
+
             await _writer.WriteAsync(command);
             await _writer.FlushAsync();
         }
@@ -277,7 +300,7 @@ namespace Syndll2
             while (!_reader.EndOfStream)
             {
                 // read a byte
-                var b = (byte) _reader.Read();
+                var b = (byte)_reader.Read();
 
                 // add it to the list
                 bytesReceived.Add(b);
@@ -314,7 +337,7 @@ namespace Syndll2
                     break;
 
                 // add it to the list
-                var b = (byte) buffer[0];
+                var b = (byte)buffer[0];
                 bytesReceived.Add(b);
 
                 // stop when we receive a termination character
@@ -329,6 +352,46 @@ namespace Syndll2
             var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
             Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + GetTraceString(s));
             return s;
+        }
+#endif
+
+        private Response ReceiveResponse()
+        {
+            // Receive the data
+            var rawResponse = Receive();
+
+            // Parse the response
+            var response = ParseResponse(rawResponse);
+
+            // If we got a QueryForHost response, do it all over again.
+            if (response.Command == PrimaryResponseCommand.QueryForHost)
+            {
+                Trace.WriteLine("Query for host received");
+                return ReceiveResponse();
+            }
+
+            // Return the response.
+            return response;
+        }
+
+#if NET_45
+        private async Task<Response> ReceiveResponseAsync()
+        {
+            // Receive the data
+            var rawResponse = await ReceiveAsync();
+
+            // Parse the response
+            var response = ParseResponse(rawResponse);
+
+            // If we got a QueryForHost response, do it all over again.
+            if (response.Command == PrimaryResponseCommand.QueryForHost)
+            {
+                Trace.WriteLine("Query for host received");
+                return await ReceiveResponseAsync();
+            }
+
+            // Return the response.
+            return response;
         }
 #endif
 
