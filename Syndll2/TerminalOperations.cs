@@ -464,6 +464,28 @@ namespace Syndll2
 #endif
         #endregion
 
+        #region ResetLine
+        /// <summary>
+        /// Directs the terminal to terminate all transmission to the host and reinitialize the communication settings.
+        /// </summary>
+        public void ResetLine()
+        {
+            _client.SendAndReceive(RequestCommand.ResetLine);
+            // no ack
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that directs the terminal to terminate all transmission to the host and reinitialize the communication settings.
+        /// </summary>
+        public async Task ResetLineAsync()
+        {
+            await _client.SendAndReceiveAsync(RequestCommand.ResetLine);
+            // no ack
+        }
+#endif
+        #endregion
+
         #region Halt
         /// <summary>
         /// Directs the terminal to terminate the normal operation mode and proceed to programming mode.
