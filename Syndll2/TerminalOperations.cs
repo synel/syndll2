@@ -96,8 +96,7 @@ namespace Syndll2
         /// </summary>
         public void SetTerminalClock(DateTime clockDateTime)
         {
-            var status = GetTerminalStatus();
-            SetTerminalStatus(clockDateTime, status.ActiveFunction);
+            SetTerminalStatus(clockDateTime, '#');
         }
 
 #if NET_45
@@ -107,8 +106,7 @@ namespace Syndll2
         /// </summary>
         public async Task SetTerminalClockAsync(DateTime clockDateTime)
         {
-            var status = await GetTerminalStatusAsync();
-            await SetTerminalStatusAsync(clockDateTime, status.ActiveFunction);
+            await SetTerminalStatusAsync(clockDateTime, '#');
         }
 #endif
         #endregion
