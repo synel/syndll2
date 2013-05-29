@@ -103,7 +103,7 @@ namespace Syndll2.Data
         {
             get { return _fingerprintUnitMode; }
         }
-        
+
 
         // Sample Raw Data  C = command, T = terminal id, CCCC = CRC code
         // Only the Data field should be passed in.
@@ -145,16 +145,24 @@ namespace Syndll2.Data
                 throw new InvalidDataException("Couldn't parse timestamp from terminal status data.");
 
             _activeFunction = data[17];
-            
+
             _buffersFull = SynelNumericFormat.Convert(data.Substring(18, 3));
             _buffersFaulty = SynelNumericFormat.Convert(data.Substring(21, 3));
             _buffersTransmitted = SynelNumericFormat.Convert(data.Substring(24, 3));
             _buffersEmpty = SynelNumericFormat.Convert(data.Substring(27, 3));
 
-            int mem;
-            if (!int.TryParse(data.Substring(30, 4), NumberStyles.None, CultureInfo.InvariantCulture, out mem) || data[34] != 'K')
-                throw new InvalidDataException("Couldn't parse memory used from terminal status data.");
-            _memoryUsed = mem * 1024; // assuming 'K' means KiB rather than KB
+            if (data[34] == 'K')
+            {
+                int mem;
+                if (!int.TryParse(data.Substring(30, 4), NumberStyles.None, CultureInfo.InvariantCulture, out mem))
+                    throw new InvalidDataException("Couldn't parse memory used from terminal status data.");
+                _memoryUsed = mem * 1024; // assuming 'K' means KiB rather than KB
+            }
+            else
+            {
+                if (!int.TryParse(data.Substring(30, 4), NumberStyles.None, CultureInfo.InvariantCulture, out _memoryUsed))
+                    throw new InvalidDataException("Couldn't parse memory used from terminal status data.");
+            }
 
             _terminalType = (TerminalTypes)data[35];
             _poweredOn = data[36] == '1';
