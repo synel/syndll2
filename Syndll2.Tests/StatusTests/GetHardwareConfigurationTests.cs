@@ -34,8 +34,8 @@ namespace Syndll2.Tests.StatusTests
             Assert.IsNotNull(config);
 
             // Test the firmware version and date
-            Assert.AreEqual(82434, config.FirmwareVersion);
-            Assert.AreEqual(new DateTime(2011, 09, 17), config.FirmwareDate);
+            Assert.AreEqual(80234, config.FirmwareVersion);
+            Assert.AreEqual(new DateTime(2005, 6, 9), config.FirmwareDate);
 
             // Test the hardware configuration
             Assert.AreEqual(TerminalTypes.SY78x, config.TerminalType);

@@ -72,7 +72,7 @@
         /// <summary>
         /// The terminal produces the query response. There are three responses: T=Timeout, O=Offline, B=Busy, L=Long query.
         /// </summary>
-        QueryReplay = 'Q',
+        QueryReply = 'Q',
 
         /// <summary>
         /// Directs the terminal to terminate transmission, reestablish communication and waits for the next SEND DATA for SEND ALL command.

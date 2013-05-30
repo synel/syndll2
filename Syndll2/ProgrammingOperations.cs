@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -248,7 +249,7 @@ namespace Syndll2
                        SynelNumericFormat.Convert(blockNumber, 2) +
                        block;
 
-            var response = _client.SendAndReceive(RequestCommand.TableOperation, data);
+            var response = _client.SendAndReceive(RequestCommand.TableOperation, data, "t");
 
             ValidateSendBlockResult(response);
         }
@@ -263,7 +264,7 @@ namespace Syndll2
                        SynelNumericFormat.Convert(blockNumber, 2) +
                        block;
 
-            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data, "t");
 
             ValidateSendBlockResult(response);
         }
@@ -308,7 +309,7 @@ namespace Syndll2
 
             var data = string.Format("{0}{1:D3}D", tableType, tableId);
 
-            var response = _client.SendAndReceive(RequestCommand.TableOperation, data);
+            var response = _client.SendAndReceive(RequestCommand.TableOperation, data, "t");
             ValidateDeleteTableResult(response);
         }
 
@@ -325,7 +326,7 @@ namespace Syndll2
 
             var data = string.Format("{0}{1:D3}D", tableType, tableId);
 
-            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data, "t");
             ValidateDeleteTableResult(response);
         }
 #endif
@@ -356,7 +357,7 @@ namespace Syndll2
         /// </summary>
         public void DeleteAllTables()
         {
-            var response = _client.SendAndReceive(RequestCommand.TableOperation, "@@@@D");
+            var response = _client.SendAndReceive(RequestCommand.TableOperation, "@@@@D", "t");
             ValidateDeleteTableResult(response);
         }
 
@@ -366,7 +367,7 @@ namespace Syndll2
         /// </summary>
         public async Task DeleteAllTablesAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, "@@@@D");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, "@@@@D", "t");
             ValidateDeleteTableResult(response);
         }
 #endif
@@ -378,7 +379,7 @@ namespace Syndll2
         /// </summary>
         public void EraseAllMemoryFromTerminal()
         {
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "F");
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "F", ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 
@@ -388,11 +389,12 @@ namespace Syndll2
         /// </summary>
         public async Task EraseAllMemoryFromTerminalAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "F");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "F", ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 #endif
         #endregion
 
+        private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
     }
 }

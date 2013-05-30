@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Net;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,8 +16,6 @@ namespace Syndll2
     public class SynelClient : IDisposable
     {
         private readonly IConnection _connection;
-        private readonly StreamReader _reader;
-        private readonly StreamWriter _writer;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
         private bool _disposed;
@@ -32,9 +29,18 @@ namespace Syndll2
         }
 
         /// <summary>
+        /// Gets the terminalId that is in use by this client.
+        /// </summary>
+        public int TerminalId
+        {
+            get { return _terminalId; }
+        }
+
+        /// <summary>
         /// Gets an accessor that exposes the operations that can be performed on the terminal.
         /// </summary>
         public TerminalOperations Terminal { get { return _terminal; } }
+
 
         private SynelClient(IConnection connection, int terminalId)
         {
@@ -44,9 +50,10 @@ namespace Syndll2
 
             _terminalId = terminalId;
             _connection = connection;
-            _reader = new StreamReader(_connection.Stream, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, bufferSize: MaxPacketSize);
-            _writer = new StreamWriter(_connection.Stream, Encoding.ASCII, bufferSize: MaxPacketSize);
             _terminal = new TerminalOperations(this);
+
+            // watch the stream in a separate thread
+            Task.Factory.StartNew(WatchStream);
         }
 
         /// <summary>
@@ -91,19 +98,15 @@ namespace Syndll2
                 return;
 
             if (disposing)
-            {
                 _connection.Dispose();
-                _reader.Dispose();
-                _writer.Dispose();
-            }
 
             _disposed = true;
         }
 
-        private const int PacketOverheadSize = 7;
-        private const int MaxDataSize = 128;
-        private const int MaxPacketSize = MaxDataSize + PacketOverheadSize;
-        private const int MaxCrcRetries = 10;
+        internal const int PacketOverheadSize = 7;
+        internal const int MaxDataSize = 128;
+        internal const int MaxPacketSize = MaxDataSize + PacketOverheadSize;
+        internal const int MaxRetries = 10;
 
         /// <summary>
         /// Creates the full command string that is to be sent to the terminal.
@@ -142,46 +145,76 @@ namespace Syndll2
             return sb.ToString();
         }
 
-        /// <summary>
-        /// Parses the response string returned from the terminal, ensuring that the response is valid.
-        /// </summary>
-        /// <param name="s">The entire response string, including ACK, NACK, CRC, and EOT where appropriate.</param>
-        /// <returns>A validated <see cref="Response"/> object.</returns>
-        private Response ParseResponse(string s)
+        private readonly byte[] _rawReceiveBuffer = new byte[MaxPacketSize];
+        private readonly List<byte> _receiveBuffer = new List<byte>(MaxPacketSize * 2);
+
+        internal event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
+        private void OnMessageReceived(MessageReceivedEventArgs args)
         {
-            // check valid input
-            if (s == null)
-                throw new ArgumentNullException("s");
+            var handler = MessageReceived;
+            if (handler != null)
+                handler(this, args);
+        }
 
-            // check for small data size, which is also a bad crc
-            if (s.Length < PacketOverheadSize)
-                throw new InvalidCrcException("Invalid CRC received from the terminal.");
+        private void WatchStream()
+        {
+            // Make sure we are still connected
+            if (!Connected)
+                return;
 
-            // check crc
-            var packet = s.Substring(0, s.Length - 5);
-            var crc = s.Substring(s.Length - 5, 4);
-            if (!SynelCRC.Verify(packet, crc))
-                throw new InvalidCrcException("Invalid CRC received from the terminal.");
+            // Begin an async read operation on the stream.
+            _connection.Stream.BeginRead(_rawReceiveBuffer, 0, MaxPacketSize, OnDataReceived, null);
+        }
 
-            // Get command
-            var cmd = packet[0];
-            if (!Enum.IsDefined(typeof(PrimaryResponseCommand), (int)cmd))
-                throw new InvalidDataException("Unknown command received: " + cmd);
-            var command = (PrimaryResponseCommand)cmd;
+        private void OnDataReceived(IAsyncResult asyncResult)
+        {
+            // Make sure we are still connected
+            if (!Connected)
+                return;
 
-            // Get terminal
-            byte terminalId = Util.CharToTerminalId(packet[1]);
-            if (terminalId != _terminalId)
-                throw new InvalidOperationException(
-                    string.Format("Got data for terminal {0} while talking to terminal {1}", terminalId, _terminalId));
+            // Conclude the async read operation.
+            var bytesRead = _connection.Stream.EndRead(asyncResult);
 
-            // Return when there is no data
-            if (packet.Length == 2)
-                return new Response(command);
+            // Make sure the data is still good.
+            // (We should never get back zeros at the start of the buffer, but it can happen during a forced disconnection.)
+            if (bytesRead > 0 && _rawReceiveBuffer[0] == 0)
+                return;
 
-            // Return when there IS data
-            var data = packet.Substring(2);
-            return new Response(command, data);
+            // Copy the raw data read into the full receive buffer.
+            _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
+
+            // See if there is an EOT in the read buffer
+            int eotPosition;
+            while ((eotPosition = _receiveBuffer.IndexOf((byte)ControlChars.EOT)) >= 0)
+            {
+                // Pull out all before and including the EOT
+                var size = eotPosition + 1;
+                var data = new byte[size];
+                _receiveBuffer.CopyTo(0, data, 0, size);
+                _receiveBuffer.RemoveRange(0, size);
+
+                // Get a string representation of the packet data
+                var packet = Encoding.ASCII.GetString(data);
+
+                // Try to parse it
+                var args = new MessageReceivedEventArgs { RawResponse = packet };
+                try
+                {
+                    args.Response = Response.Parse(packet, _terminalId);
+                }
+                catch (Exception ex)
+                {
+                    // pass any exception into the event arguments
+                    args.Exception = ex;
+                }
+
+                // Raise the event
+                OnMessageReceived(args);
+            }
+
+            // Repeat, to continually watch the stream for incoming data.
+            WatchStream();
         }
 
         /// <summary>
@@ -189,32 +222,77 @@ namespace Syndll2
         /// </summary>
         /// <param name="requestCommand">The request command to send.</param>
         /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
         /// <returns>A validated <see cref="Response"/> object.</returns>
-        internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null)
+        internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null, params string[] validResponses)
         {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
-            
-            // CRC retry loop
-            for (int i = 1; i <= MaxCrcRetries; i++)
+
+            // augment valid responses with the terminal id
+            if (validResponses.Length > 0)
+            {
+                var tid = Util.TerminalIdToChar(_terminalId).ToString(CultureInfo.InvariantCulture);
+                validResponses = validResponses.Select(x => x.Insert(1, tid)).ToArray();
+            }
+
+            // retry loop
+            for (int i = 1; i <= MaxRetries; i++)
             {
                 try
                 {
-                    // Send and receive
+                    // Send the request
                     var rawRequest = CreateCommand(requestCommand, dataToSend);
                     Send(rawRequest);
-                    return ReceiveResponse();
+
+                    // Wait for the response
+                    var signal = new AutoResetEvent(false);
+                    string rawResponse = null;
+                    Response response = null;
+                    Exception exception = null;
+                    EventHandler<MessageReceivedEventArgs> handler = (sender, args) =>
+                        {
+                            if (!string.IsNullOrEmpty(args.RawResponse))
+                            {
+                                // Don't ever handle host query responses here.
+                                if (args.RawResponse[0] == 'q')
+                                    return;
+
+                                // If the valid list is populated, don't handle responses that aren't in it.
+                                if (validResponses.Length > 0 && !validResponses.Any(x => args.RawResponse.StartsWith(x)))
+                                    return;
+                            }
+
+                            rawResponse = args.RawResponse;
+                            response = args.Response;
+                            exception = args.Exception;
+                            signal.Set();
+                        };
+                    MessageReceived += handler;
+                    signal.WaitOne(5000);
+                    MessageReceived -= handler;
+
+                    if (rawResponse != null)
+                        Util.Log("Received: " + rawResponse);
+
+                    if (exception != null)
+                        throw exception;
+
+                    if (response == null)
+                        throw new InvalidDataException("No response received from the terminal.");
+
+                    return response;
                 }
                 catch (InvalidCrcException)
                 {
                     // swallow these until the retry limit is reached
-                    if (i < MaxCrcRetries)
-                        Trace.WriteLine("Bad CRC.  Retrying...");
+                    if (i < MaxRetries)
+                        Util.Log("Bad CRC.  Retrying...");
                 }
             }
 
             // We've hit the retry limit, throw a CRC exception.
-            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxCrcRetries));
+            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
         }
 
 #if NET_45
@@ -223,32 +301,77 @@ namespace Syndll2
         /// </summary>
         /// <param name="requestCommand">The request command to send.</param>
         /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
         /// <returns>A task that yields a validated <see cref="Response"/> object.</returns>
-        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null)
+        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, params string[] validResponses)
         {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
 
-            // CRC retry loop
-            for (int i = 1; i <= MaxCrcRetries; i++)
+            // augment valid responses with the terminal id
+            if (validResponses.Length > 0)
+            {
+                var tid = Util.TerminalIdToChar(_terminalId).ToString(CultureInfo.InvariantCulture);
+                validResponses = validResponses.Select(x => x.Insert(1, tid)).ToArray();
+            }
+
+            // retry loop
+            for (int i = 1; i <= MaxRetries; i++)
             {
                 try
                 {
-                    // Send and Receive
+                    // Send the request
                     var rawRequest = CreateCommand(requestCommand, dataToSend);
                     await SendAsync(rawRequest);
-                    return await ReceiveResponseAsync();
+
+                    // Wait for the response
+                    var signal = new TaskCompletionSource<bool>();
+                    string rawResponse = null;
+                    Response response = null;
+                    Exception exception = null;
+                    EventHandler<MessageReceivedEventArgs> handler = (sender, args) =>
+                        {
+                            if (!string.IsNullOrEmpty(args.RawResponse))
+                            {
+                                // Don't ever handle host query responses here.
+                                if (args.RawResponse[0] == 'q')
+                                    return;
+
+                                // If the valid list is populated, don't handle responses that aren't in it.
+                                if (validResponses.Length > 0 && !validResponses.Any(x => args.RawResponse.StartsWith(x)))
+                                    return;
+                            }
+
+                            rawResponse = args.RawResponse;
+                            response = args.Response;
+                            exception = args.Exception;
+                            signal.SetResult(true);
+                        };
+                    MessageReceived += handler;
+                    await Task.WhenAny(signal.Task, Task.Delay(5000));
+                    MessageReceived -= handler;
+
+                    if (rawResponse != null)
+                        Util.Log("Received: " + rawResponse);
+
+                    if (exception != null)
+                        throw exception;
+
+                    if (response == null)
+                        throw new InvalidDataException("No response received from the terminal.");
+
+                    return response;
                 }
                 catch (InvalidCrcException)
                 {
                     // swallow these until the retry limit is reached
-                    if (i < MaxCrcRetries)
-                        Trace.WriteLine("Bad CRC.  Retrying...");
+                    if (i < MaxRetries)
+                        Util.Log("Bad CRC.  Retrying...");
                 }
             }
 
             // We've hit the retry limit, throw a CRC exception.
-            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxCrcRetries));
+            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
         }
 #endif
 
@@ -265,10 +388,11 @@ namespace Syndll2
             if (!_connection.Stream.CanWrite)
                 throw new InvalidOperationException("The stream cannot be written to.");
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + GetTraceString(command));
+            Util.Log("Sending: " + command);
 
-            _writer.Write(command);
-            _writer.Flush();
+            var bytes = Encoding.ASCII.GetBytes(command);
+            _connection.Stream.Write(bytes, 0, bytes.Length);
+            _connection.Stream.Flush();
         }
 
 #if NET_45
@@ -282,238 +406,12 @@ namespace Syndll2
             if (!_connection.Stream.CanWrite)
                 throw new InvalidOperationException("The stream cannot be written to.");
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Sending: " + GetTraceString(command));
+            Util.Log("Sending: " + command);
 
-            await _writer.WriteAsync(command);
-            await _writer.FlushAsync();
+            var bytes = Encoding.ASCII.GetBytes(command);
+            await _connection.Stream.WriteAsync(bytes, 0, bytes.Length);
+            await _connection.Stream.FlushAsync();
         }
 #endif
-
-        private string Receive()
-        {
-            // make sure we are connected
-            if (!Connected)
-                throw new InvalidOperationException("The client is not connected.");
-
-            // read a packet from the stream
-            var bytesReceived = new List<byte>(MaxPacketSize);
-            while (!_reader.EndOfStream)
-            {
-                // read a byte
-                var b = (byte)_reader.Read();
-
-                // add it to the list
-                bytesReceived.Add(b);
-
-                // stop when we receive a termination character
-                if (b == ControlChars.EOT)
-                    break;
-
-                // make sure we can't go on forever
-                if (bytesReceived.Count > MaxPacketSize)
-                    throw new ProtocolViolationException("Received too much data without a termination character!");
-            }
-
-            var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + GetTraceString(s));
-            return s;
-        }
-
-#if NET_45
-        private async Task<string> ReceiveAsync()
-        {
-            // make sure we are connected
-            if (!Connected)
-                throw new InvalidOperationException("The client is not connected.");
-
-            // read a packet from the stream
-            var bytesReceived = new List<byte>(MaxPacketSize);
-            while (!_reader.EndOfStream)
-            {
-                // read a byte
-                var buffer = new char[1];
-                var i = await _reader.ReadAsync(buffer, 0, 1);
-                if (i == 0)
-                    break;
-
-                // add it to the list
-                var b = (byte)buffer[0];
-                bytesReceived.Add(b);
-
-                // stop when we receive a termination character
-                if (b == ControlChars.EOT)
-                    break;
-
-                // make sure we can't go on forever
-                if (bytesReceived.Count > MaxPacketSize)
-                    throw new ProtocolViolationException("Received too much data without a termination character!");
-            }
-
-            var s = Encoding.ASCII.GetString(bytesReceived.ToArray());
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Received: " + GetTraceString(s));
-            return s;
-        }
-#endif
-
-        private Response ReceiveResponse()
-        {
-            // Receive the data
-            var rawResponse = Receive();
-
-            // Parse the response
-            var response = ParseResponse(rawResponse);
-
-            // If we got a QueryForHost response, do it all over again.
-            if (response.Command == PrimaryResponseCommand.QueryForHost)
-            {
-                Trace.WriteLine("Query for host received");
-                return ReceiveResponse();
-            }
-
-            // Return the response.
-            return response;
-        }
-
-#if NET_45
-        private async Task<Response> ReceiveResponseAsync()
-        {
-            // Receive the data
-            var rawResponse = await ReceiveAsync();
-
-            // Parse the response
-            var response = ParseResponse(rawResponse);
-
-            // If we got a QueryForHost response, do it all over again.
-            if (response.Command == PrimaryResponseCommand.QueryForHost)
-            {
-                Trace.WriteLine("Query for host received");
-                return await ReceiveResponseAsync();
-            }
-
-            // Return the response.
-            return response;
-        }
-#endif
-
-        private string GetTraceString(string s)
-        {
-            return s.Length == 0
-                       ? "(NO DATA)"
-                       : s.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
-                          .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
-                          .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
-                          .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
-        }
-
-        #region Binary UCP connection (TODO)
-
-        /*
-         *   Section 4.2 of the Synel Protocol specification describes a binary "Universal Communication Protocol".
-         *   This is only used when communicating with a special firmware (8.23F) that supports two fingerprint units.
-         *   It is not fully tested, but the below code can be uncommented and used when it becomes necessary to support this.
-         */
-
-#if NOTIMPLEMENTED
-
-        internal byte[] SendAndReceive(byte[] command)
-        {
-            SendBytes(command);
-            return ReceiveBytes();
-        }
-
-        private void SendBytes(byte[] data)
-        {
-            // make sure we are connected
-            if (!Connected)
-                throw new InvalidOperationException("The client is not connected.");
-
-            // make sure the stream is ready for writing
-            if (!_connection.Stream.CanWrite)
-                throw new InvalidOperationException("Cannot write to the stream.");
-
-            // decide on a packet number
-            var packetNumber = 0x31;
-
-            // calculate the crc
-            var crc = SynelCRC.Calculate(data);
-
-            // create the packet
-            var packet = new byte[data.Length + 10];
-
-            // header
-            packet[0] = (byte)ControlChars.SOH;
-            packet[1] = (byte)(packet.Length >> 8);
-            packet[2] = (byte)(packet.Length & 0xFF);
-            packet[3] = (byte)packetNumber;
-            //packet[4] = host header - reserved for future use
-
-            // data
-            data.CopyTo(packet, 5);
-
-            // terminator
-            crc.CopyTo(packet, packet.Length - 5);
-            packet[packet.Length - 1] = (byte)ControlChars.EOT;
-
-            // Write the packet
-            Trace.WriteLine("{0}: Sending Bytes: {1}",
-                            Thread.CurrentThread.ManagedThreadId,
-                            Util.ByteArrayToString(packet));
-            _connection.Stream.Write(packet, 0, packet.Length);
-            _connection.Stream.Flush();
-        }
-
-        private byte[] ReceiveBytes()
-        {
-            // Make sure we are connected.
-            if (!Connected)
-                throw new InvalidOperationException("The client is not connected.");
-
-            // Make sure the stream is ready for reading.
-            if (!_connection.Stream.CanRead)
-                throw new InvalidOperationException("Cannot read from the stream.");
-
-            // Read the UCP header.
-            var header = new byte[5];
-            _connection.Stream.Read(header, 0, 5);
-
-            // Check for SOH.
-            if (header[0] != ControlChars.SOH)
-                throw new InvalidDataException(string.Format("Expected SOH.  Got 0x{0:X2}", header[0]));
-
-            // Get the packet length and number.
-            var packetLength = (header[1] << 8) + header[2];
-            var packetNumber = header[3];
-
-            // Host address is reserved for future use.
-            //var hostAddress = header[4];
-
-            // Read the data
-            var data = new byte[packetLength - 10];
-            if (data.Length > 0)
-                _connection.Stream.Read(data, 0, data.Length);
-
-            // Read the UCP terminator.
-            var terminator = new byte[5];
-            _connection.Stream.Read(terminator, 0, 5);
-
-            // Check for EOT
-            if (terminator[4] != ControlChars.EOT)
-                throw new InvalidDataException(string.Format("Expected EOT.  Got 0x{0:X2}", terminator[4]));
-
-            // Validate CRC
-            var crc = terminator.Take(4).ToArray();
-            if (!SynelCRC.Verify(data, crc))
-                throw new InvalidDataException("Invalid CRC received from the terminal.");
-
-            // Return just the data
-            Trace.WriteLine("{0}: Received Bytes: {1}{2}{3}",
-                            Thread.CurrentThread.ManagedThreadId,
-                            Util.ByteArrayToString(header),
-                            Util.ByteArrayToString(data),
-                            Util.ByteArrayToString(terminator));
-            return data;
-        }
-#endif
-        #endregion
     }
 }

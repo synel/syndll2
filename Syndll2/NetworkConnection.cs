@@ -45,7 +45,7 @@ namespace Syndll2
             var endPoint = GetEndPoint(host, port);
             var connection = new NetworkConnection(endPoint);
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connecting to terminal...");
+            Util.Log("Connecting to terminal...");
 
             // default timeout is two seconds
             if (timeout <= TimeSpan.Zero)
@@ -67,7 +67,7 @@ namespace Syndll2
             // Get the stream for the connection
             connection._stream = client.GetStream();
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connected!");
+            Util.Log("Connected!");
 
             return connection;
         }
@@ -78,7 +78,7 @@ namespace Syndll2
             var endPoint = GetEndPoint(host, port);
             var connection = new NetworkConnection(endPoint);
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connecting to terminal...");
+            Util.Log("Connecting to terminal...");
 
             // default timeout is two seconds
             if (timeout <= TimeSpan.Zero)
@@ -99,7 +99,7 @@ namespace Syndll2
             // Get the stream for the connection
             connection._stream = client.GetStream();
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Connected!");
+            Util.Log("Connected!");
 
             return connection;
         }
@@ -131,7 +131,7 @@ namespace Syndll2
         {
             if (!Connected)
             {
-                Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Already disconnected.");
+                Util.Log("Already disconnected.");
                 GateKeeper.Exit(_endPoint);
                 return;
             }
@@ -140,7 +140,7 @@ namespace Syndll2
             _tcpClient.Close();
             GateKeeper.Exit(_endPoint);
 
-            Trace.WriteLine(Thread.CurrentThread.ManagedThreadId + ": Disconnected.");
+            Util.Log("Disconnected.");
         }
 
         public void Dispose()

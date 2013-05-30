@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Globalization;
+using System.Threading;
 
 namespace Syndll2
 {
@@ -32,7 +35,7 @@ namespace Syndll2
             {
                 var hi = hex[i << 1];
                 var lo = hex[(i << 1) + 1];
-                array[i] = (byte) ((GetHexVal(hi) << 4) + GetHexVal(lo));
+                array[i] = (byte)((GetHexVal(hi) << 4) + GetHexVal(lo));
             }
 
             return array;
@@ -41,7 +44,7 @@ namespace Syndll2
         private static byte GetHexVal(char hex)
         {
             if ((hex > 47 && hex < 58) || (hex > 64 && hex < 71))
-                return (byte) (hex - (hex < 58 ? 48 : 55));
+                return (byte)(hex - (hex < 58 ? 48 : 55));
 
             throw new ArgumentException("A hexadecimal string can only contain characters 0-9 and A-F.");
         }
@@ -55,7 +58,7 @@ namespace Syndll2
             if (c > '@')
                 c--;
 
-            return (byte) (c - '0');
+            return (byte)(c - '0');
         }
 
         public static char TerminalIdToChar(int terminalId)
@@ -68,8 +71,19 @@ namespace Syndll2
             if (terminalId >= 16)
                 terminalId++;
 
-            return (char) ('0' + terminalId);
+            return (char)('0' + terminalId);
         }
 
+        public static void Log(string message)
+        {
+            var s = message.Length == 0
+                        ? "(NO DATA)"
+                        : message.Replace(ControlChars.EOT.ToString(CultureInfo.InvariantCulture), "(EOT)")
+                                 .Replace(ControlChars.SOH.ToString(CultureInfo.InvariantCulture), "(SOH)")
+                                 .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
+                                 .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
+
+            Trace.WriteLine(string.Format("{0}: {1}", Thread.CurrentThread.ManagedThreadId, s));
+        }
     }
 }

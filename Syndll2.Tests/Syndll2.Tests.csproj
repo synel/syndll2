@@ -63,6 +63,7 @@
   <ItemGroup>
     <Compile Include="AppTests\TimeAmerica\PunchDataTests.cs" />
     <Compile Include="BasicTests\ConnectionTests.cs" />
+    <Compile Include="BasicTests\ReceiveTests.cs" />
     <Compile Include="DataTests\ClearBufferTests.cs" />
     <Compile Include="DataTests\AcknowledgeLastRecordTests.cs" />
     <Compile Include="DataTests\GetDataTests.cs" />

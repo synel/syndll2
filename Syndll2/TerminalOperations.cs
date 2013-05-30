@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Syndll2.Data;
 
@@ -34,7 +34,7 @@ namespace Syndll2
         /// </summary>
         public TerminalStatus GetTerminalStatus()
         {
-            var response = _client.SendAndReceive(RequestCommand.GetStatus);
+            var response = _client.SendAndReceive(RequestCommand.GetStatus, null, "s");
             return GetTerminalStatusResult(response);
         }
 
@@ -44,7 +44,7 @@ namespace Syndll2
         /// </summary>
         public async Task<TerminalStatus> GetTerminalStatusAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.GetStatus);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.GetStatus, "s");
             return GetTerminalStatusResult(response);
         }
 #endif
@@ -66,11 +66,8 @@ namespace Syndll2
         public void SetTerminalStatus(DateTime clockDateTime, char activeFunction)
         {
             var request = new TimeAndFunction(clockDateTime, activeFunction);
-            var response = _client.SendAndReceive(RequestCommand.SetStatus, request.ToString());
+            var response = _client.SendAndReceive(RequestCommand.SetStatus, request.ToString(), ACK);
             ValidateAcknowledgment(response);
-
-            // pause to allow time for the terminal to update internally
-            Thread.Sleep(20);
         }
 
 #if NET_45
@@ -80,11 +77,8 @@ namespace Syndll2
         public async Task SetTerminalStatusAsync(DateTime clockDateTime, char activeFunction)
         {
             var request = new TimeAndFunction(clockDateTime, activeFunction);
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SetStatus, request.ToString());
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SetStatus, request.ToString(), ACK);
             ValidateAcknowledgment(response);
-
-            // pause to allow time for the terminal to update internally
-            await Task.Delay(20);
         }
 #endif
         #endregion
@@ -117,7 +111,7 @@ namespace Syndll2
         /// </summary>
         public TechnicianModeSettings GetTechnicianModeSettings()
         {
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "HPG");
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "HPG", "SHPG");
             return GetTechnicianModeSettingsResult(response);
         }
 
@@ -127,7 +121,7 @@ namespace Syndll2
         /// </summary>
         public async Task<TechnicianModeSettings> GetTechnicianModeSettingsAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HPG");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HPG", "SHPG");
             return GetTechnicianModeSettingsResult(response);
         }
 #endif
@@ -149,7 +143,7 @@ namespace Syndll2
         public void SetTechnicianModeSettings(TechnicianModeSettings settings)
         {
             var firmwareRevision = GetHardwareConfiguration().FirmwareVersion;
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, settings.ToString());
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, settings.ToString(), ACK, NACK);
             response = SetTechnicianModeSettings_AdjustResponse(response, firmwareRevision);
             ValidateAcknowledgment(response);
         }
@@ -161,7 +155,7 @@ namespace Syndll2
         public async Task SetTechnicianModeSettingsAsync(TechnicianModeSettings settings)
         {
             var firmwareRevision = (await GetHardwareConfigurationAsync()).FirmwareVersion;
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, settings.ToString());
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, settings.ToString(), ACK, NACK);
             response = SetTechnicianModeSettings_AdjustResponse(response, firmwareRevision);
             ValidateAcknowledgment(response);
         }
@@ -174,8 +168,8 @@ namespace Syndll2
                 return response;
 
             // Bug in firmware.  We always receive a NACK instead of an ACK for this command.
-            if (response == Response.NotAcknowledged)
-                response = Response.Acknowledged;
+            if (response.Command == PrimaryResponseCommand.NotAcknowledged)
+                response = Response.Parse(response.RawResponse.Replace(ControlChars.NACK, ControlChars.ACK), _client.TerminalId);
 
             return response;
         }
@@ -187,7 +181,7 @@ namespace Syndll2
         /// </summary>
         public HardwareConfiguration GetHardwareConfiguration()
         {
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "HG");
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "HG", "SHG");
             return GetHardwareConfigurationResult(response);
         }
 
@@ -197,7 +191,7 @@ namespace Syndll2
         /// </summary>
         public async Task<HardwareConfiguration> GetHardwareConfigurationAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HG");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HG", "SHG");
             return GetHardwareConfigurationResult(response);
         }
 #endif
@@ -218,7 +212,7 @@ namespace Syndll2
         /// </summary>
         public NetworkConfiguration GetNetworkConfiguration()
         {
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "HN");
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "HN", "SHN");
             return GetNetworkConfigurationResult(response);
         }
 
@@ -228,7 +222,7 @@ namespace Syndll2
         /// </summary>
         public async Task<NetworkConfiguration> GetNetworkConfigurationAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HN");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "HN", "SHN");
             return GetNetworkConfigurationResult(response);
         }
 #endif
@@ -249,7 +243,7 @@ namespace Syndll2
         /// </summary>
         public FingerprintUnitStatus GetFingerprintUnitStatus()
         {
-            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "M0");
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "M0", "vM0");
             return GetFingerprintUnitStatusResult(response);
         }
 
@@ -259,7 +253,7 @@ namespace Syndll2
         /// </summary>
         public async Task<FingerprintUnitStatus> GetFingerprintUnitStatusAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0", "vM0");
             return GetFingerprintUnitStatusResult(response);
         }
 #endif
@@ -282,7 +276,7 @@ namespace Syndll2
         /// </summary>
         public string GetFullDataBlock()
         {
-            var response = _client.SendAndReceive(RequestCommand.GetFullDataBlock);
+            var response = _client.SendAndReceive(RequestCommand.GetFullDataBlock, null, "n", "d");
             return GetFullDataBlockResult(response);
         }
 
@@ -294,7 +288,7 @@ namespace Syndll2
         /// </summary>
         public async Task<string> GetFullDataBlockAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.GetFullDataBlock);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.GetFullDataBlock, null, "n", "d");
             return GetFullDataBlockResult(response);
         }
 #endif
@@ -334,8 +328,7 @@ namespace Syndll2
             var validResponses = new[]
                 {
                     PrimaryResponseCommand.NoData,
-                    PrimaryResponseCommand.DataRecord,
-                    PrimaryResponseCommand.QueryForHost
+                    PrimaryResponseCommand.DataRecord
                 };
 
             if (!validResponses.Contains(response.Command))
@@ -355,7 +348,7 @@ namespace Syndll2
         /// </summary>
         public string GetData()
         {
-            var response = _client.SendAndReceive(RequestCommand.GetData);
+            var response = _client.SendAndReceive(RequestCommand.GetData, null, "n", "d");
             return GetDataResult(response);
         }
 
@@ -366,7 +359,7 @@ namespace Syndll2
         /// </summary>
         public async Task<string> GetDataAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.GetData);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.GetData, null, "n", "d");
             return GetDataResult(response);
         }
 #endif
@@ -402,8 +395,7 @@ namespace Syndll2
             var validResponses = new[]
                 {
                     PrimaryResponseCommand.NoData,
-                    PrimaryResponseCommand.DataRecord,
-                    PrimaryResponseCommand.QueryForHost
+                    PrimaryResponseCommand.DataRecord
                 };
 
             if (!validResponses.Contains(response.Command))
@@ -423,7 +415,7 @@ namespace Syndll2
         /// </summary>
         public void AcknowledgeLastRecord()
         {
-            var response = _client.SendAndReceive(RequestCommand.AcknowledgeLastRecord);
+            var response = _client.SendAndReceive(RequestCommand.AcknowledgeLastRecord, null, ACK);
             ValidateAcknowledgment(response);
         }
 
@@ -434,7 +426,7 @@ namespace Syndll2
         /// </summary>
         public async Task AcknowledgeLastRecordAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.AcknowledgeLastRecord);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.AcknowledgeLastRecord, null, ACK);
             ValidateAcknowledgment(response);
         }
 #endif
@@ -446,7 +438,7 @@ namespace Syndll2
         /// </summary>
         public void ClearBuffer()
         {
-            var response = _client.SendAndReceive(RequestCommand.ClearBuffer);
+            var response = _client.SendAndReceive(RequestCommand.ClearBuffer, null, ACK);
             ValidateAcknowledgment(response);
         }
 
@@ -456,7 +448,7 @@ namespace Syndll2
         /// </summary>
         public async Task ClearBufferAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.ClearBuffer);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.ClearBuffer, null, ACK);
             ValidateAcknowledgment(response);
         }
 #endif
@@ -490,7 +482,7 @@ namespace Syndll2
         /// </summary>
         public ProgrammingStatus Halt()
         {
-            var response = _client.SendAndReceive(RequestCommand.Halt);
+            var response = _client.SendAndReceive(RequestCommand.Halt, null, ACK);
             ValidateAcknowledgment(response);
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -501,7 +493,7 @@ namespace Syndll2
         /// </summary>
         public async Task<ProgrammingStatus> HaltAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Halt);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Halt, null, ACK);
             ValidateAcknowledgment(response);
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -514,7 +506,7 @@ namespace Syndll2
         /// </summary>
         public ProgrammingStatus Run()
         {
-            var response = _client.SendAndReceive(RequestCommand.Run);
+            var response = _client.SendAndReceive(RequestCommand.Run, null, ACK);
             ValidateAcknowledgment(response);
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -525,7 +517,7 @@ namespace Syndll2
         /// </summary>
         public async Task<ProgrammingStatus> RunAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Run);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Run, null, ACK);
             ValidateAcknowledgment(response);
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -543,7 +535,7 @@ namespace Syndll2
         public void DisplayMessage(string message, int displaySeconds, TextAlignment alignment = TextAlignment.Center)
         {
             var request = DisplayMessage_ValidateInput(message, displaySeconds, alignment);
-            var response = _client.SendAndReceive(RequestCommand.DisplayMessage, request);
+            var response = _client.SendAndReceive(RequestCommand.DisplayMessage, request, ACK);
             ValidateAcknowledgment(response);
         }
 
@@ -557,7 +549,7 @@ namespace Syndll2
         public async Task DisplayMessageAsync(string message, int displaySeconds, TextAlignment alignment = TextAlignment.Center)
         {
             var request = DisplayMessage_ValidateInput(message, displaySeconds, alignment);
-            var response = await _client.SendAndReceiveAsync(RequestCommand.DisplayMessage, request);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.DisplayMessage, request, ACK);
             ValidateAcknowledgment(response);
         }
 #endif
@@ -616,7 +608,7 @@ namespace Syndll2
         public SingleRecord GetSingleRecord(char tableType, int tableId, string key)
         {
             var data = string.Format("MFS{0}{1:D3}0{2}", tableType, tableId, key);
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, data);
+            var response = _client.SendAndReceive(RequestCommand.SystemCommands, data, "SMFS");
             return GetSingleRecordResult(response);
         }
 
@@ -631,7 +623,7 @@ namespace Syndll2
         public async Task<SingleRecord> GetSingleRecordAsync(char tableType, int tableId, string key)
         {
             var data = string.Format("MFS{0}{1:D3}0{2}", tableType, tableId, key);
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, data);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, data, "SMFS");
             return GetSingleRecordResult(response);
         }
 #endif
@@ -646,30 +638,7 @@ namespace Syndll2
         }
         #endregion
 
-        #region GetSystemParameters
-        public string GetSystemParameters()
-        {
-            ////Halt();
-            //var record = GetSingleRecord('p', 1, "");
-            ////Run();
-            //return record;
-            throw new NotImplementedException();
-        }
-        #endregion
-
-        #region SetTerminalTimeZone
-        public void SetTerminalTimeZone(TimeZoneInfo timeZone)
-        {
-            var parameters = GetSystemParameters();
-            throw new NotImplementedException();
-        }
-
-#if NET_45
-        public async Task SetTerminalTimeZoneAsync(TimeZoneInfo timeZone)
-        {
-            throw new NotImplementedException();
-        }
-#endif
-        #endregion
+        private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
+        private readonly string NACK = ControlChars.NACK.ToString(CultureInfo.InvariantCulture);
     }
 }

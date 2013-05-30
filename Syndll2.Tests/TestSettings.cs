@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using System;
+using System.Configuration;
 using System.Threading.Tasks;
 
 namespace Syndll2.Tests
@@ -37,12 +38,12 @@ namespace Syndll2.Tests
 
         public static SynelClient Connect()
         {
-            return SynelClient.Connect(HostAddress, TcpPort, TerminalId);
+            return SynelClient.Connect(HostAddress, TcpPort, TerminalId, TimeSpan.FromSeconds(15));
         }
 
         public static Task<SynelClient> ConnectAsync()
         {
-            return SynelClient.ConnectAsync(HostAddress, TcpPort, TerminalId);
+            return SynelClient.ConnectAsync(HostAddress, TcpPort, TerminalId, TimeSpan.FromSeconds(15));
         }
     }
 }

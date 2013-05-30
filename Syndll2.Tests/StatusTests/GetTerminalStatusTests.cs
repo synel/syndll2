@@ -12,21 +12,9 @@ namespace Syndll2.Tests.StatusTests
         [TestMethod]
         public void Can_Get_Terminal_Status_Raw_Multi_Threaded()
         {
-            Parallel.For(0, 5, x => Can_Get_Terminal_Status());
+            // to test the gatekeeper functionality
+            Parallel.For(0, 10, x => Can_Get_Terminal_Status());
         }
-
-        //[TestMethod]
-        //public void Can_Get_Terminal_Status_Raw_Binary()
-        //{
-        //    using (var client = TestSettings.Connect())
-        //    {
-        //        // D0
-        //        var response = client.SendAndReceive(new byte[] {0x44, 0x30});
-
-        //        //var response = client.Operations.Raw.GetTerminalStatus();
-        //        //AssertValidRawTerminalStatus(response);
-        //    }
-        //}
 
         [TestMethod]
         public void Can_Get_Terminal_Status()
@@ -55,8 +43,8 @@ namespace Syndll2.Tests.StatusTests
 
             // Test the hardware and firmware versions
             Assert.AreEqual(8, status.HardwareModel);
-            Assert.AreEqual(2, status.HardwareRevision);
-            Assert.AreEqual(82434, status.FirmwareVersion);
+            Assert.AreEqual(0, status.HardwareRevision);
+            Assert.AreEqual(80234, status.FirmwareVersion);
 
             // Test that we are talking to a 785 and it is powered on.
             Assert.AreEqual(TerminalTypes.SY78x, status.TerminalType);
@@ -77,11 +65,11 @@ namespace Syndll2.Tests.StatusTests
             //Assert.AreEqual(79872, status.MemoryUsed);
 
             // Test the user defined field
-            Assert.AreEqual(0000, status.UserDefinedField);
+            Assert.AreEqual(7234, status.UserDefinedField);
 
             // Test the network info
             Assert.AreEqual(TransportType.Tcp, status.TransportType);
-            Assert.AreEqual(TimeSpan.Zero, status.PollingInterval);
+            Assert.AreEqual(TimeSpan.FromSeconds(15), status.PollingInterval);
 
             // Test the fingerprint mode
             Assert.AreEqual(FingerprintUnitModes.Slave, status.FingerprintUnitMode);
