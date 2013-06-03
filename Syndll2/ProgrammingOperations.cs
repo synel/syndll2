@@ -53,8 +53,11 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
+            var fileName = Path.GetFileName(path);  
+            
             // Read the file into an RDY
             RdyFile rdy;
+            Util.Log("Reading " + fileName);
             using (var stream = File.OpenRead(path))
             {
                 rdy = RdyFile.Read(stream);
@@ -66,7 +69,7 @@ namespace Syndll2
                 // Upload each file referenced separately
                 foreach (var record in rdy.Records)
                 {
-                    // find the file name
+                    // find the new full path
                     var p = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar + record.Data;
 
                     // recurse to upload each file
@@ -76,6 +79,7 @@ namespace Syndll2
             else
             {
                 // Just upload the single RDY
+                Util.Log("Uploading " + fileName);
                 UploadTableFromRdy(rdy, replace);
             }
         }
@@ -94,8 +98,11 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
+            var fileName = Path.GetFileName(path);  
+
             // Read the file into an RDY
             RdyFile rdy;
+            Util.Log("Reading " + fileName);
             using (var stream = File.OpenRead(path))
             {
                 rdy = await RdyFile.ReadAsync(stream);
@@ -107,7 +114,7 @@ namespace Syndll2
                 // Upload each file referenced separately
                 foreach (var record in rdy.Records)
                 {
-                    // find the file name
+                    // find the new full path
                     var p = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar + record.Data;
 
                     // recurse to upload each file
@@ -117,6 +124,7 @@ namespace Syndll2
             else
             {
                 // Just upload the single RDY
+                Util.Log("Uploading " + fileName);
                 await UploadTableFromRdyAsync(rdy, replace);
             }
         }
