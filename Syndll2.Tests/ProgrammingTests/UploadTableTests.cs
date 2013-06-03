@@ -46,5 +46,17 @@ namespace Syndll2.Tests.ProgrammingTests
             }
         }
 
+        [TestMethod]
+        public void Can_Program_Terminal()
+        {
+            using (var client = TestSettings.Connect())
+            using (var p = client.Terminal.Programming())
+            {
+                p.UploadTableFromFile(@"c:\temp\rdy\dir001.rdy");
+                p.UploadTableFromFile(@"c:\temp\rdy\dir002.rdy");
+                p.UploadTableFromFile(@"c:\temp\rdy\dir003.rdy");
+            }
+        }
+
     }
 }
