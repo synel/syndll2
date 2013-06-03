@@ -73,7 +73,7 @@ namespace Syndll2.Data
                 rdy.Header = RdyHeader.Parse(header);
 
                 // See if we are working with a directory file
-                if (rdy.Header.TableType == 'z' && rdy.Header.TableId == 1)
+                if (rdy.Header.TableType == 'z')
                 {
                     rdy.IsDirectoryFile = true;
 
@@ -114,7 +114,7 @@ namespace Syndll2.Data
                 rdy.Header = RdyHeader.Parse(header);
 
                 // See if we are working with a directory file
-                if (rdy.Header.TableType == 'z' && rdy.Header.TableId == 1)
+                if (rdy.Header.TableType == 'z')
                 {
                     rdy.IsDirectoryFile = true;
 
@@ -364,9 +364,9 @@ namespace Syndll2.Data
                     throw new InvalidDataException("Couldn't parse the total number of characters from the RDY header.");
                 header.TotalCharacters = i;
 
-                if (header.TableType == 'z' && header.TableId == 1)
+                if (header.TableType == 'z')
                 {
-                    // z001 indicates a "directory file", which has a truncated header.  Exit early.
+                    // z indicates a "directory file", which has a truncated header.  Exit early.
                     return header;
                 }
 
