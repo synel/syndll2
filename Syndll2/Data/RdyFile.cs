@@ -376,10 +376,14 @@ namespace Syndll2.Data
                     throw new InvalidDataException("Couldn't parse the header size from the RDY header.");
                 if (i != HeaderSize)
                     throw new InvalidDataException(string.Format("The header size in the RDY file should state {0} but it was {1} instead.", HeaderSize, i));
-
+                
                 if (!int.TryParse(data.Substring(12, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i))
                     throw new InvalidDataException("Couldn't parse the record size from the RDY header.");
                 header.RecordSize = i;
+
+                // work around a known issue with v001 data (from JPR001.RDY)
+                if (header.TableType == 'v' && header.TableId == 1 && header.RecordSize == 96)
+                    header.RecordSize = 6;
 
                 header.RecordCount = SynelNumericFormat.Convert(data.Substring(14, 3));
 
@@ -407,13 +411,16 @@ namespace Syndll2.Data
 
             public override string ToString()
             {
+                // work around a known issue with v001 data (from JPR001.RDY)
+                var recordSize = TableType == 'v' && TableId == 1 && RecordSize == 6 ? 96 : RecordSize;
+
                 return string.Format("{0}{1:D3}{2:D5}{3}{4:D2}{5:D2}{6}{7:D2}{8:D2}{9:D2}",
                                      TableType,
                                      TableId,
                                      TotalCharacters,
                                      TableVersion,
                                      HeaderSize,
-                                     RecordSize,
+                                     recordSize,
                                      SynelNumericFormat.Convert(RecordCount, 3),
                                      KeyLength,
                                      KeyOffset,
