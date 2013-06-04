@@ -39,6 +39,18 @@ namespace Syndll2
             _disposed = true;
         }
 
+        /// <summary>
+        /// Event that is raised repeatedly to indicate progress while programming the terminal.
+        /// </summary>
+        public event EventHandler<UploadProgressChangedEventArgs> ProgressChanged;
+
+        private void OnProgressChanged(UploadProgressChangedEventArgs args)
+        {
+            var handler = ProgressChanged;
+            if (handler != null)
+                handler(this, args);
+        }
+
         #region UploadTable
         /// <summary>
         /// Uploads an RDY file to the terminal.
@@ -61,6 +73,7 @@ namespace Syndll2
             using (var stream = File.OpenRead(path))
             {
                 rdy = RdyFile.Read(stream);
+                rdy.Filename = fileName;
             }
 
             // Check for directory files
@@ -106,6 +119,7 @@ namespace Syndll2
             using (var stream = File.OpenRead(path))
             {
                 rdy = await RdyFile.ReadAsync(stream);
+                rdy.Filename = fileName;
             }
 
             // Check for directory files
@@ -177,6 +191,9 @@ namespace Syndll2
             var tableType = rdy.Header.TableType;
             var tableId = rdy.Header.TableId;
 
+            // reset the progress info
+            OnProgressChanged(new UploadProgressChangedEventArgs(0, totalBlocks, rdy.Filename));
+
             foreach (var record in rdy.Records)
             {
                 // append the record to the buffer
@@ -188,7 +205,7 @@ namespace Syndll2
 
                 // cut a block from the buffer and send it
                 var block = buffer.Cut(0, MaxBlockSize);
-                SendBlock(tableType, tableId, blockNumber, totalBlocks, block, replace);
+                SendBlock(tableType, tableId, blockNumber, totalBlocks, block, replace, rdy.Filename);
                 blockNumber++;
             }
 
@@ -196,7 +213,7 @@ namespace Syndll2
             if (buffer.Length > 0)
             {
                 var block = buffer.ToString();
-                SendBlock(tableType, tableId, blockNumber, totalBlocks, block, replace);
+                SendBlock(tableType, tableId, blockNumber, totalBlocks, block, replace, rdy.Filename);
             }
         }
 
@@ -224,6 +241,9 @@ namespace Syndll2
             var tableType = rdy.Header.TableType;
             var tableId = rdy.Header.TableId;
 
+            // reset the progress info
+            OnProgressChanged(new UploadProgressChangedEventArgs(0, totalBlocks, rdy.Filename));
+
             foreach (var record in rdy.Records)
             {
                 // append the record to the buffer
@@ -235,7 +255,7 @@ namespace Syndll2
 
                 // cut a block from the buffer and send it
                 var block = buffer.Cut(0, MaxBlockSize);
-                await SendBlockAsync(tableType, tableId, blockNumber, totalBlocks, block, replace);
+                await SendBlockAsync(tableType, tableId, blockNumber, totalBlocks, block, replace, rdy.Filename);
                 blockNumber++;
             }
 
@@ -243,12 +263,12 @@ namespace Syndll2
             if (buffer.Length > 0)
             {
                 var block = buffer.ToString();
-                await SendBlockAsync(tableType, tableId, blockNumber, totalBlocks, block, replace);
+                await SendBlockAsync(tableType, tableId, blockNumber, totalBlocks, block, replace, rdy.Filename);
             }
         }
 #endif
 
-        private void SendBlock(char tableType, int tableId, int blockNumber, int totalBlocks, string block, bool replace)
+        private void SendBlock(char tableType, int tableId, int blockNumber, int totalBlocks, string block, bool replace, string filename)
         {
             var data = tableType +
                        tableId.ToString("D3") +
@@ -260,10 +280,12 @@ namespace Syndll2
             var response = _client.SendAndReceive(RequestCommand.TableOperation, data, "t");
 
             ValidateSendBlockResult(response);
+
+            OnProgressChanged(new UploadProgressChangedEventArgs(blockNumber, totalBlocks, filename));
         }
 
 #if NET_45
-        private async Task SendBlockAsync(char tableType, int tableId, int blockNumber, int totalBlocks, string block, bool replace)
+        private async Task SendBlockAsync(char tableType, int tableId, int blockNumber, int totalBlocks, string block, bool replace, string filename)
         {
             var data = tableType +
                        tableId.ToString("D3") +
@@ -275,6 +297,8 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data, "t");
 
             ValidateSendBlockResult(response);
+
+            OnProgressChanged(new UploadProgressChangedEventArgs(blockNumber, totalBlocks, filename));
         }
 #endif
 

@@ -168,6 +168,9 @@
     <Compile Include="..\Syndll2\TerminalOperations.cs">
       <Link>TerminalOperations.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\UploadProgressChangedEventArgs.cs">
+      <Link>UploadProgressChangedEventArgs.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\Util.cs">
       <Link>Util.cs</Link>
     </Compile>

@@ -25,6 +25,11 @@ namespace Syndll2.Data
         public RdyHeader Header { get; private set; }
 
         /// <summary>
+        /// Gets the name of this file if it was loaded from disk.
+        /// </summary>
+        public string Filename { get; internal set; }
+
+        /// <summary>
         /// Gets a list of records in the RDY file.
         /// </summary>
         public IList<RdyRecord> Records { get; private set; }

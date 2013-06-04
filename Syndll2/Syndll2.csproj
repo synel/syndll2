@@ -48,6 +48,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="UploadProgressChangedEventArgs.cs" />
     <Compile Include="Data\BaudRates.cs" />
     <Compile Include="ControlChars.cs" />
     <Compile Include="Data\FingerprintComparisonModes.cs" />
