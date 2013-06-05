@@ -65,8 +65,8 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
-            var fileName = Path.GetFileName(path);  
-            
+            var fileName = Path.GetFileName(path);
+
             // Read the file into an RDY
             RdyFile rdy;
             Util.Log("Reading " + fileName);
@@ -111,7 +111,7 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
-            var fileName = Path.GetFileName(path);  
+            var fileName = Path.GetFileName(path);
 
             // Read the file into an RDY
             RdyFile rdy;
@@ -427,6 +427,8 @@ namespace Syndll2
 #endif
         #endregion
 
+        // ReSharper disable InconsistentNaming
         private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
+        // ReSharper restore InconsistentNaming
     }
 }

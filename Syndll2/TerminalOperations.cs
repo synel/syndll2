@@ -638,7 +638,9 @@ namespace Syndll2
         }
         #endregion
 
+        // ReSharper disable InconsistentNaming
         private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
         private readonly string NACK = ControlChars.NACK.ToString(CultureInfo.InvariantCulture);
+        // ReSharper restore InconsistentNaming
     }
 }
