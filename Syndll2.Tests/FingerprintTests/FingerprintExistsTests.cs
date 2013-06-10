@@ -4,27 +4,27 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Syndll2.Tests.FingerprintTests
 {
     [TestClass]
-    public class GetFingerprintTests
+    public class FingerprintExistsTests
     {
         [TestMethod]
-        public void Can_Get_Fingerprint_Template()
+        public void Can_Check_Fingerprint_Exists()
         {
             using (var client = TestSettings.Connect())
             using (var p = client.Terminal.Programming())
             {
-                var data = p.Fingerprint.GetTemplate(1, 0);
-                Assert.AreEqual(384, data.Length);
+                var exists = p.Fingerprint.TemplateExists(1, 0);
+                Assert.IsTrue(exists);
             }
         }
 
         [TestMethod]
-        public async Task Can_Get_Fingerprint_Template_Async()
+        public async Task Can_Check_Fingerprint_Exists_Async()
         {
             using (var client = await TestSettings.ConnectAsync())
             using (var p = client.Terminal.Programming())
             {
-                var data = await p.Fingerprint.GetTemplateAsync(1, 0);
-                Assert.AreEqual(384, data.Length);
+                var exists = await p.Fingerprint.TemplateExistsAsync(1, 0);
+                Assert.IsTrue(exists);
             }
         }
     }

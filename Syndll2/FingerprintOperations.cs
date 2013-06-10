@@ -49,6 +49,50 @@ namespace Syndll2
         }
         #endregion
 
+        #region TemplateExists
+        /// <summary>
+        /// Checks to see if a particular fingerprint template exists on the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        /// <param name="fingerIndex">The finger index (0-9) associated with the template.</param>
+        /// <returns>True if the template exists, false otherwise.</returns>
+        public bool TemplateExists(long templateId, int fingerIndex)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            if (fingerIndex < 0 || fingerIndex > 9)
+                throw new ArgumentOutOfRangeException("fingerIndex", fingerIndex, "The finger index must be between 0 and 9");
+
+            var data = string.Format("K{0:D1}{1:D10}", fingerIndex, templateId);
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, "vK");
+
+            return response.Data[11] == '1';
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that checks to see if a particular fingerprint template exists on the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        /// <param name="fingerIndex">The finger index (0-9) associated with the template.</param>
+        /// <returns>An awaitable task that yields true if the template exists, false otherwise.</returns>
+        public async Task<bool> TemplateExistsAsync(long templateId, int fingerIndex)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            if (fingerIndex < 0 || fingerIndex > 9)
+                throw new ArgumentOutOfRangeException("fingerIndex", fingerIndex, "The finger index must be between 0 and 9");
+
+            var data = string.Format("A{0:D1}{1:D10}", fingerIndex, templateId);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, "vB1", "vF0");
+
+            return response.Data[11] == '1';
+        }
+#endif
+        #endregion
+
         #region GetTemplate
         /// <summary>
         /// Gets a specific fingerprint template from the terminal.
