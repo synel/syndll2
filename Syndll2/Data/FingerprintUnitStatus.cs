@@ -45,6 +45,7 @@ namespace Syndll2.Data
 
         // Sample Raw Data  C = command, T = terminal id, CCCC = CRC code
         // Only the Data field should be passed in.
+        // v0M0SB16F0608080000023/09090S307:77
         // v1M0UB15C0511110002520/09090S27809
         // CT0123456789012345678901234567CCCC
         //   0         1         2         3
@@ -57,12 +58,11 @@ namespace Syndll2.Data
             if (data == null)
                 throw new ArgumentNullException("data");
 
-            const int expectedLength = 27;
-            if (data.Length != expectedLength)
+            if (data.Length != 28 && data.Length != 29)
                 throw new ArgumentException(
                     string.Format(
-                        "Status data should be exactly {0} characters, and you passed {1} characters.  " +
-                        "Do not pass the command, terminal id, or CRC here.", expectedLength, data.Length),
+                        "Status data should be either {0} or {1} characters, and you passed {2} characters.  " +
+                        "Do not pass the command, terminal id, or CRC here.", 28, 29, data.Length),
                     "data");
 
             return new FingerprintUnitStatus(data);
@@ -95,6 +95,8 @@ namespace Syndll2.Data
             if (b < 1 || b > 5)
                 throw new InvalidDataException("Fingerprint Global Threshold should be between 1 and 5.");
             _globalThreshold = (FingerprintThreshold)b;
+
+            // What is that last zero in position 28? It's not in the spec.
         }
     }
 }

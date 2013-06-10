@@ -60,6 +60,12 @@
     <Compile Include="..\Syndll2\Data\FingerprintComparisonModes.cs">
       <Link>Data\FingerprintComparisonModes.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\Data\FingerprintStatusCode.cs">
+      <Link>Data\FingerprintStatusCode.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\Data\FingerprintTemplateBlock.cs">
+      <Link>Data\FingerprintTemplateBlock.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\Data\FingerprintThreshold.cs">
       <Link>Data\FingerprintThreshold.cs</Link>
     </Compile>
@@ -120,6 +126,12 @@
     <Compile Include="..\Syndll2\Extensions.cs">
       <Link>Extensions.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\FingerprintException.cs">
+      <Link>FingerprintException.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\FingerprintOperations.cs">
+      <Link>FingerprintOperations.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\GateKeeper.cs">
       <Link>GateKeeper.cs</Link>
     </Compile>
@@ -155,6 +167,9 @@
     </Compile>
     <Compile Include="..\Syndll2\SerialConnection.cs">
       <Link>SerialConnection.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\SynelByteFormat.cs">
+      <Link>SynelByteFormat.cs</Link>
     </Compile>
     <Compile Include="..\Syndll2\SynelClient.cs">
       <Link>SynelClient.cs</Link>

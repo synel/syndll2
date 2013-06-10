@@ -15,10 +15,20 @@ namespace Syndll2
         const int MaxBlockSize = 119; // per spec section 3.3.2 and 3.3.4.
 
         private readonly SynelClient _client;
+        private readonly Lazy<FingerprintOperations> _fingerprintOperations;
         private bool _disposed;
+
+        /// <summary>
+        /// Provides access to fingerprint methods.
+        /// </summary>
+        public FingerprintOperations Fingerprint
+        {
+            get { return _fingerprintOperations.Value; }
+        }
 
         internal ProgrammingOperations(SynelClient client)
         {
+            _fingerprintOperations = new Lazy<FingerprintOperations>(() => new FingerprintOperations(client));
             _client = client;
             _client.Terminal.Halt();
         }
@@ -38,7 +48,7 @@ namespace Syndll2
 
             _disposed = true;
         }
-
+        
         /// <summary>
         /// Event that is raised repeatedly to indicate progress while programming the terminal.
         /// </summary>

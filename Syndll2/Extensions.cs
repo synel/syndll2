@@ -1,4 +1,6 @@
 ﻿using System;
+using System.ComponentModel;
+using System.Reflection;
 using System.Text;
 
 namespace Syndll2
@@ -17,6 +19,20 @@ namespace Syndll2
             sb.Remove(startIndex, length);
 
             return s;
+        }
+
+        /// <summary>
+        /// Gets the value of any [Description] attribute attached to an enum.
+        /// Returns null if it doesn't exist.
+        /// </summary>
+        public static string GetDescription(this Enum value)
+        {
+            var field = value.GetType().GetField(value.ToString());
+
+            var attribute = Attribute.GetCustomAttribute(field, typeof (DescriptionAttribute))
+                            as DescriptionAttribute;
+
+            return attribute == null ? value.ToString() : attribute.Description;
         }
     }
 }

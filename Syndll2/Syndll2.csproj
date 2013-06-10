@@ -48,6 +48,11 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="SynelByteFormat.cs" />
+    <Compile Include="Data\FingerprintTemplateBlock.cs" />
+    <Compile Include="Data\FingerprintStatusCode.cs" />
+    <Compile Include="FingerprintException.cs" />
+    <Compile Include="FingerprintOperations.cs" />
     <Compile Include="UploadProgressChangedEventArgs.cs" />
     <Compile Include="Data\BaudRates.cs" />
     <Compile Include="ControlChars.cs" />

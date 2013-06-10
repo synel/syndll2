@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Syndll2.Data;
 
@@ -237,37 +238,6 @@ namespace Syndll2
         }
         #endregion
 
-        #region GetFingerprintUnitStatus
-        /// <summary>
-        /// Gets the fingerprint unit status from the terminal.
-        /// </summary>
-        public FingerprintUnitStatus GetFingerprintUnitStatus()
-        {
-            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "M0", "vM0");
-            return GetFingerprintUnitStatusResult(response);
-        }
-
-#if NET_45
-        /// <summary>
-        /// Returns an awaitable task that gets the fingerprint unit status from the terminal.
-        /// </summary>
-        public async Task<FingerprintUnitStatus> GetFingerprintUnitStatusAsync()
-        {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0", "vM0");
-            return GetFingerprintUnitStatusResult(response);
-        }
-#endif
-
-        private static FingerprintUnitStatus GetFingerprintUnitStatusResult(Response response)
-        {
-            if (response.Command != PrimaryResponseCommand.LastCommand_Or_Fingerprint)
-                throw new InvalidDataException(string.Format("Expected response of {0} but received {1}.",
-                                                             PrimaryResponseCommand.LastCommand_Or_Fingerprint, response.Command));
-
-            return FingerprintUnitStatus.Parse(response.Data);
-        }
-        #endregion
-
         #region GetFullDataBlock
         /// <summary>
         /// Gets a full block of data from the terminal.
@@ -484,7 +454,12 @@ namespace Syndll2
         {
             var response = _client.SendAndReceive(RequestCommand.Halt, null, ACK);
             ValidateAcknowledgment(response);
-            return ProgrammingStatus.Parse(response.Data);
+            var status = ProgrammingStatus.Parse(response.Data);
+
+            // A delay here is required, or some operations will fail.
+            Thread.Sleep(200);
+
+            return status;
         }
 
 #if NET_45
@@ -495,7 +470,12 @@ namespace Syndll2
         {
             var response = await _client.SendAndReceiveAsync(RequestCommand.Halt, null, ACK);
             ValidateAcknowledgment(response);
-            return ProgrammingStatus.Parse(response.Data);
+
+            // A delay here is required, or some operations will fail.
+            await Task.Delay(200);
+
+            var status = ProgrammingStatus.Parse(response.Data);
+            return status;
         }
 #endif
         #endregion

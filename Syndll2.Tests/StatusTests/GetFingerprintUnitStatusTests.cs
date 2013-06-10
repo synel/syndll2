@@ -4,7 +4,6 @@ using Syndll2.Data;
 
 namespace Syndll2.Tests.StatusTests
 {
-    [Ignore] // This test is failing currently
     [TestClass]
     public class GetFingerprintUnitStatusTests
     {
@@ -12,8 +11,9 @@ namespace Syndll2.Tests.StatusTests
         public void Can_Get_Fingerprint_Unit_Status()
         {
             using (var client = TestSettings.Connect())
+            using (var p = client.Terminal.Programming())
             {
-                var status = client.Terminal.GetFingerprintUnitStatus();
+                var status = p.Fingerprint.GetUnitStatus();
                 AssertValidFingerprintUnitStatus(status);
             }
         }
@@ -22,8 +22,9 @@ namespace Syndll2.Tests.StatusTests
         public async Task Can_Get_Fingerprint_Unit_Status_Async()
         {
             using (var client = await TestSettings.ConnectAsync())
+            using (var p = client.Terminal.Programming())
             {
-                var status = await client.Terminal.GetFingerprintUnitStatusAsync();
+                var status = await p.Fingerprint.GetUnitStatusAsync();
                 AssertValidFingerprintUnitStatus(status);
             }
         }
@@ -33,8 +34,12 @@ namespace Syndll2.Tests.StatusTests
             // Test that we got some status back.
             Assert.IsNotNull(status);
 
-            // TODO: test the results
-            // Not getting any data back, so can't test anything yet.
+            Assert.AreEqual(FingerprintComparisonModes.Unknown, status.ComparisonMode);
+            Assert.AreEqual("B16F06080800", status.KernelVersion);
+            Assert.AreEqual(23, status.LoadedTemplates);
+            Assert.AreEqual(9090, status.MaximumTemplates);
+            Assert.AreEqual(FingerprintUnitModes.Slave, status.FingerprintUnitMode);
+            Assert.AreEqual(FingerprintThreshold.Medium, status.GlobalThreshold);
         }
     }
 }

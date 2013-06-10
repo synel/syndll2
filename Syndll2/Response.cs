@@ -28,8 +28,9 @@ namespace Syndll2
             if (s == null)
                 throw new ArgumentNullException("s");
 
-            // check for too small or too large packet size, which should also be reported as a bad CRC.
-            if (s.Length < SynelClient.PacketOverheadSize || s.Length > SynelClient.MaxPacketSize)
+            // Check for too small or too large packet size, which should also be reported as a bad CRC.
+            // However, fingerprint templates can exceed normal packet size.
+            if (s.Length < SynelClient.PacketOverheadSize || (s.Length > SynelClient.MaxPacketSize && !s.StartsWith("v")))
                 throw new InvalidCrcException("Invalid CRC received from the terminal.");
 
             // check crc

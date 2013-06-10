@@ -4,6 +4,7 @@
     {
         Universal = 'U',
         Verify = 'V',
-        Identify = 'I'
+        Identify = 'I',
+        Unknown = 'S' // TODO: getting an 'S', but not in the docs
     }
 }
