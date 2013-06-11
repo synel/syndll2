@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
 
@@ -31,15 +32,18 @@ namespace Syndll2.Tests.StatusTests
 
         private static void AssertValidFingerprintUnitStatus(FingerprintUnitStatus status)
         {
-            // Test that we got some status back.
+            // Just test that we got some status back.
             Assert.IsNotNull(status);
 
-            Assert.AreEqual(FingerprintComparisonModes.Unknown, status.ComparisonMode);
-            Assert.AreEqual("B16F06080800", status.KernelVersion);
-            Assert.AreEqual(23, status.LoadedTemplates);
-            Assert.AreEqual(9090, status.MaximumTemplates);
-            Assert.AreEqual(FingerprintUnitModes.Slave, status.FingerprintUnitMode);
-            Assert.AreEqual(FingerprintThreshold.Medium, status.GlobalThreshold);
+            // Output that status for debugging.
+            Debug.WriteLine("");
+            Debug.WriteLine("Comparison Mode:   {0}", status.ComparisonMode);
+            Debug.WriteLine("Kernel Version:    {0}", new object[] {status.KernelVersion});
+            Debug.WriteLine("Loaded Templates:  {0}", status.LoadedTemplates);
+            Debug.WriteLine("Maximum Templates: {0}", status.MaximumTemplates);
+            Debug.WriteLine("FPU Mode:          {0}", status.FingerprintUnitMode);
+            Debug.WriteLine("Global Threshold:  {0}", status.GlobalThreshold);
+            Debug.WriteLine("");
         }
     }
 }

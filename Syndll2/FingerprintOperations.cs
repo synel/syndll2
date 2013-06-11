@@ -124,6 +124,98 @@ namespace Syndll2
 #endif
         #endregion
 
+        #region ListTemplates
+        /// <summary>
+        /// Lists the templates available on the terminal.
+        /// </summary>
+        /// <returns>A dictionary where the key is the template id, and the value is the count of fingerprints in the template.</returns>
+        public Dictionary<long, int> ListTemplates()
+        {
+            const int batchSize = 50;
+            var currentBatch = 1;
+            var templatesRetrieved = 0;
+
+            var data = string.Format("L0{0:D2}", batchSize);
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, "vL0", "vF0");
+
+            // v0L00200001000020000000001000000000118:1(EOT)
+            //   01234567890123
+
+            var totalTemplates = int.Parse(response.Data.Substring(9, 5));
+            var result = new Dictionary<long, int>();
+
+            while (true)
+            {
+                var count = int.Parse(response.Data.Substring(2, 2));
+                templatesRetrieved += count;
+                
+                for (int i = 0; i < count; i++)
+                {
+                    var j = i*10 + 14;
+                    var templateId = long.Parse(response.Data.Substring(j, 10));
+
+                    if (result.ContainsKey(templateId))
+                        result[templateId]++;
+                    else
+                        result.Add(templateId, 1);
+                }
+
+                if (templatesRetrieved >= totalTemplates)
+                    return result;
+                
+                currentBatch++;
+                data = string.Format("L0{0:D2}{1:D5}{2:D5}", batchSize, currentBatch, totalTemplates);
+                response = _client.SendAndReceive(RequestCommand.Fingerprint, data, "vL0", "vF0");
+            }
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that lists the templates available on the terminal.
+        /// </summary>
+        /// <returns>An awaitable task that yields a dictionary where the key is the template id, and the value is the count of fingerprints in the template.</returns>
+        public async Task<Dictionary<long, int>> ListTemplatesAsync()
+        {
+            const int batchSize = 50;
+            var currentBatch = 1;
+            var templatesRetrieved = 0;
+
+            var data = string.Format("L0{0:D2}", batchSize);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, "vL0", "vF0");
+
+            // v0L00200001000020000000001000000000118:1(EOT)
+            //   01234567890123
+
+            var totalTemplates = int.Parse(response.Data.Substring(9, 5));
+            var result = new Dictionary<long, int>();
+
+            while (true)
+            {
+                var count = int.Parse(response.Data.Substring(2, 2));
+                templatesRetrieved += count;
+
+                for (int i = 0; i < count; i++)
+                {
+                    var j = i * 10 + 14;
+                    var templateId = long.Parse(response.Data.Substring(j, 10));
+
+                    if (result.ContainsKey(templateId))
+                        result[templateId]++;
+                    else
+                        result.Add(templateId, 1);
+                }
+
+                if (templatesRetrieved >= totalTemplates)
+                    return result;
+
+                currentBatch++;
+                data = string.Format("L0{0:D2}{1:D5}{2:D5}", batchSize, currentBatch, totalTemplates);
+                response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, "vL0", "vF0");
+            }
+        }
+#endif
+        #endregion
+
         #region PutTemplate
         /// <summary>
         /// Puts a fingerprint template onto the terminal.
@@ -175,7 +267,6 @@ namespace Syndll2
         }
 #endif
         #endregion
-
 
         #region DeleteTemplate
         /// <summary>

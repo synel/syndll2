@@ -5,6 +5,6 @@
         Universal = 'U',
         Verify = 'V',
         Identify = 'I',
-        Unknown = 'S' // TODO: getting an 'S', but not in the docs
+        FPU_S = 'S' // I have no idea what this means, but it's in the spec.
     }
 }
