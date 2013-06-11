@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using Syndll2.Data;
@@ -122,5 +123,63 @@ namespace Syndll2
         }
 #endif
         #endregion
+
+        #region DeleteTemplate
+        /// <summary>
+        /// Deletes a specific fingerprint template (all indexes) from the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        public void DeleteTemplate(long templateId)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            var data = string.Format("G0{0:D10}", templateId);
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that deletes a specific fingerprint template (all indexes) from the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        public async Task DeleteTemplateAsync(long templateId)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            var data = string.Format("G0{0:D10}", templateId);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+#endif
+        #endregion
+
+        #region DeleteAllTemplates
+        /// <summary>
+        /// Deletes all fingerprint templates from the terminal.
+        /// </summary>
+        public void DeleteAllTemplates()
+        {
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "G0@@@@@@@@@@", ACK);
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that deletes all fingerprint templates from the terminal.
+        /// </summary>
+        public async Task DeleteAllTemplatesAsync()
+        {
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G0@@@@@@@@@@", ACK);
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+#endif
+        #endregion
+
+        // ReSharper disable InconsistentNaming
+        private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
+        // ReSharper restore InconsistentNaming
     }
 }
