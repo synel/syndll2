@@ -148,10 +148,10 @@ namespace Syndll2
             {
                 var count = int.Parse(response.Data.Substring(2, 2));
                 templatesRetrieved += count;
-                
+
                 for (int i = 0; i < count; i++)
                 {
-                    var j = i*10 + 14;
+                    var j = i * 10 + 14;
                     var templateId = long.Parse(response.Data.Substring(j, 10));
 
                     if (result.ContainsKey(templateId))
@@ -162,7 +162,7 @@ namespace Syndll2
 
                 if (templatesRetrieved >= totalTemplates)
                     return result;
-                
+
                 currentBatch++;
                 data = string.Format("L0{0:D2}{1:D5}{2:D5}", batchSize, currentBatch, totalTemplates);
                 response = _client.SendAndReceive(RequestCommand.Fingerprint, data, "vL0", "vF0");
@@ -318,6 +318,181 @@ namespace Syndll2
         {
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G0@@@@@@@@@@", ACK);
             TerminalOperations.ValidateAcknowledgment(response);
+        }
+#endif
+        #endregion
+
+        #region SetUnitMode
+        /// <summary>
+        /// Sets the fingerprint unit mode on the terminal.
+        /// </summary>
+        /// <param name="mode">The fingerprint unit mode.</param>
+        public void SetUnitMode(FingerprintUnitModes mode)
+        {
+            string val;
+            switch (mode)
+            {
+                case FingerprintUnitModes.Master:
+                    val = "MASTERMODE";
+                    break;
+                case FingerprintUnitModes.Slave:
+                    val = "SLAVE-MODE";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid FPU mode.", "mode");
+            }
+
+            var data = string.Format("H0F{0}", val);
+            _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that sets the fingerprint unit mode on the terminal.
+        /// </summary>
+        /// <param name="mode">The fingerprint unit mode.</param>
+        public async Task SetUnitModeAsync(FingerprintUnitModes mode)
+        {
+            string val;
+            switch (mode)
+            {
+                case FingerprintUnitModes.Master:
+                    val = "MASTERMODE";
+                    break;
+                case FingerprintUnitModes.Slave:
+                    val = "SLAVE-MODE";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid FPU mode.", "mode");
+            }
+
+            var data = string.Format("H0F{0}", val);
+            await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
+        }
+#endif
+        #endregion
+
+        #region SetThreshold
+        /// <summary>
+        /// Sets the fingerprint threshold on the terminal.
+        /// </summary>
+        /// <param name="threshold">The fingerprint threshold.</param>
+        public void SetThreshold(FingerprintThreshold threshold)
+        {
+            string val;
+            switch (threshold)
+            {
+                case FingerprintThreshold.VeryHigh:
+                    val = "1-VERYHIGH";
+                    break;
+                case FingerprintThreshold.High:
+                    val = "2-HIGH----";
+                    break;
+                case FingerprintThreshold.Medium:
+                    val = "3-MEDIUM--";
+                    break;
+                case FingerprintThreshold.Low:
+                    val = "4-LOW-----";
+                    break;
+                case FingerprintThreshold.VeryLow:
+                    val = "5-VERYLOW-";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid fingerprint threshold.", "threshold");
+            }
+
+            var data = string.Format("H0T{0}", val);
+            _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that sets the fingerprint threshold on the terminal.
+        /// </summary>
+        /// <param name="threshold">The fingerprint threshold.</param>
+        public async Task SetThresholdAsync(FingerprintThreshold threshold)
+        {
+            string val;
+            switch (threshold)
+            {
+                case FingerprintThreshold.VeryHigh:
+                    val = "1-VERYHIGH";
+                    break;
+                case FingerprintThreshold.High:
+                    val = "2-HIGH----";
+                    break;
+                case FingerprintThreshold.Medium:
+                    val = "3-MEDIUM--";
+                    break;
+                case FingerprintThreshold.Low:
+                    val = "4-LOW-----";
+                    break;
+                case FingerprintThreshold.VeryLow:
+                    val = "5-VERYLOW-";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid fingerprint threshold.", "threshold");
+            }
+
+            var data = string.Format("H0T{0}", val);
+            await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
+        }
+#endif
+        #endregion
+
+        #region SetEnrollMode
+        /// <summary>
+        /// Sets the fingerprint enroll mode on the terminal.
+        /// </summary>
+        /// <param name="mode">The fingerprint enroll mode.</param>
+        public void SetEnrollMode(FingerprintEnrollModes mode)
+        {
+            string val;
+            switch (mode)
+            {
+                case FingerprintEnrollModes.Once:
+                    val = "1-Template";
+                    break;
+                case FingerprintEnrollModes.Twice:
+                    val = "2-Template";
+                    break;
+                case FingerprintEnrollModes.Dual:
+                    val = "3-Template";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid fingerprint enroll mode.", "mode");
+            }
+
+            var data = string.Format("H0E{0}", val);
+            _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
+        }
+
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that sets the fingerprint enroll mode on the terminal.
+        /// </summary>
+        /// <param name="mode">The fingerprint enroll mode.</param>
+        public async Task SetEnrollModeAsync(FingerprintEnrollModes mode)
+        {
+            string val;
+            switch (mode)
+            {
+                case FingerprintEnrollModes.Once:
+                    val = "1-Template";
+                    break;
+                case FingerprintEnrollModes.Twice:
+                    val = "2-Template";
+                    break;
+                case FingerprintEnrollModes.Dual:
+                    val = "3-Template";
+                    break;
+                default:
+                    throw new ArgumentException("Invalid fingerprint enroll mode.", "mode");
+            }
+
+            var data = string.Format("H0E{0}", val);
+            await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
         }
 #endif
         #endregion
