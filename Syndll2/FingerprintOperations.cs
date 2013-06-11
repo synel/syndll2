@@ -451,13 +451,13 @@ namespace Syndll2
             switch (mode)
             {
                 case FingerprintEnrollModes.Once:
-                    val = "1-Template";
+                    val = "0-TEMPLATE";
                     break;
                 case FingerprintEnrollModes.Twice:
-                    val = "2-Template";
+                    val = "1-TEMPLATE";
                     break;
                 case FingerprintEnrollModes.Dual:
-                    val = "3-Template";
+                    val = "A-TEMPLATE";
                     break;
                 default:
                     throw new ArgumentException("Invalid fingerprint enroll mode.", "mode");
@@ -479,13 +479,13 @@ namespace Syndll2
             switch (mode)
             {
                 case FingerprintEnrollModes.Once:
-                    val = "1-Template";
+                    val = "0-TEMPLATE";
                     break;
                 case FingerprintEnrollModes.Twice:
-                    val = "2-Template";
+                    val = "1-TEMPLATE";
                     break;
                 case FingerprintEnrollModes.Dual:
-                    val = "3-Template";
+                    val = "A-TEMPLATE";
                     break;
                 default:
                     throw new ArgumentException("Invalid fingerprint enroll mode.", "mode");
