@@ -120,8 +120,8 @@ namespace Syndll2
             if (data == null)
                 data = string.Empty;
 
-            // make sure the input isn't too long
-            if (data.Length > MaxDataSize)
+            // make sure the input isn't too long, except for when uploading fingerprints.
+            if (data.Length > MaxDataSize && command != RequestCommand.Fingerprint)
                 throw new ArgumentException(string.Format("Data must be {0} ASCII characters or less.", MaxDataSize));
 
             // Begin building the command string

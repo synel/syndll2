@@ -124,6 +124,59 @@ namespace Syndll2
 #endif
         #endregion
 
+        #region PutTemplate
+        /// <summary>
+        /// Puts a fingerprint template onto the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        /// <param name="template">The fingerprint template.</param>
+        public void PutTemplate(long templateId, byte[] template)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            if (template == null || template.Length == 0)
+                throw new ArgumentException("Template data is required.", "template");
+
+            if (template.Length != 348 && template.Length != 384)
+                throw new ArgumentException("Template data should be either 348 or 384 bytes in length.", "template");
+
+
+            var data = string.Format("B1{0:D10}0101{1:D3}{2}", templateId, template.Length, SynelByteFormat.Convert(template));
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, "vb0");
+
+            if (response.Command != PrimaryResponseCommand.LastCommand_Or_Fingerprint || !response.Data.StartsWith("b0"))
+                throw new InvalidOperationException(string.Format("Could not upload fingerprint to terminal with template id {0}", templateId));
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that puts a fingerprint template onto the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        /// <param name="template">The fingerprint template.</param>
+        public async Task PutTemplateAsync(long templateId, byte[] template)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            if (template == null || template.Length == 0)
+                throw new ArgumentException("Template data is required.", "template");
+
+            if (template.Length != 348 && template.Length != 384)
+                throw new ArgumentException("Template data should be either 348 or 384 bytes in length.", "template");
+
+
+            var data = string.Format("B1{0:D10}0101{1:D3}{2}", templateId, template.Length, SynelByteFormat.Convert(template));
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, "vb0");
+
+            if (response.Command != PrimaryResponseCommand.LastCommand_Or_Fingerprint || !response.Data.StartsWith("b0"))
+                throw new InvalidOperationException(string.Format("Could not upload fingerprint to terminal with template id {0}", templateId));
+        }
+#endif
+        #endregion
+
+
         #region DeleteTemplate
         /// <summary>
         /// Deletes a specific fingerprint template (all indexes) from the terminal.
