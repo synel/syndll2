@@ -48,6 +48,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\FingerprintEnrollModes.cs" />
     <Compile Include="SynelByteFormat.cs" />
     <Compile Include="Data\FingerprintTemplateBlock.cs" />
     <Compile Include="Data\FingerprintStatusCode.cs" />

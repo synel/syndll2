@@ -60,6 +60,9 @@
     <Compile Include="..\Syndll2\Data\FingerprintComparisonModes.cs">
       <Link>Data\FingerprintComparisonModes.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\Data\FingerprintEnrollModes.cs">
+      <Link>Data\FingerprintEnrollModes.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\Data\FingerprintStatusCode.cs">
       <Link>Data\FingerprintStatusCode.cs</Link>
     </Compile>

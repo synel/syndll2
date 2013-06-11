@@ -43,6 +43,7 @@ namespace Syndll2.Tests.StatusTests
             Debug.WriteLine("Maximum Templates: {0}", status.MaximumTemplates);
             Debug.WriteLine("FPU Mode:          {0}", status.FingerprintUnitMode);
             Debug.WriteLine("Global Threshold:  {0}", status.GlobalThreshold);
+            Debug.WriteLine("Enroll Mode:       {0}", status.EnrollMode);
             Debug.WriteLine("");
         }
     }
