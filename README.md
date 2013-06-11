@@ -88,12 +88,12 @@ This code is safe for production, but should still be considered *unstable*.
  - Various commands for getting status
  - Setting the terminal's clock
  - Programming operations, such as uploading a terminal program.
+ - Sending and retrieving fingerprint templates.
+ - Miscellaneous other functions.
  
 **Not yet implemented**
- - Sending and retrieving fingerprint templates.
  - Serial or modem connection.
- - Miscellaneous other lesser-used functions.
-
+ 
 ### Solution Structure
 
 **Syndll2**  
