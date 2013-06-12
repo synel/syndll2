@@ -61,7 +61,6 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="AppTests\TimeAmerica\PunchDataTests.cs" />
     <Compile Include="BasicTests\ConnectionTests.cs" />
     <Compile Include="BasicTests\ByteFormatTests.cs" />
     <Compile Include="BasicTests\ReceiveTests.cs" />
@@ -95,10 +94,6 @@
     <Compile Include="BasicTests\CRCTests.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Syndll2.TimeAmerica\Syndll2.TimeAmerica.csproj">
-      <Project>{2294a410-4b72-4bce-a68d-5bf04ee02985}</Project>
-      <Name>Syndll2.TimeAmerica</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Syndll2\Syndll2.csproj">
       <Project>{def83505-fb2d-4e8d-8bfd-bea5c64b7486}</Project>
       <Name>Syndll2</Name>
