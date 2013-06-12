@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Syndll2
@@ -43,6 +41,17 @@ namespace Syndll2
         public static NetworkConnection Connect(string host, int port = 3734, TimeSpan timeout = default(TimeSpan))
         {
             var endPoint = GetEndPoint(host, port);
+            return Connect(endPoint, timeout);
+        }
+
+        public static NetworkConnection Connect(IPAddress ipAddress, int port = 3734, TimeSpan timeout = default(TimeSpan))
+        {
+            var endPoint = new IPEndPoint(ipAddress, port);
+            return Connect(endPoint, timeout);
+        }
+
+        public static NetworkConnection Connect(IPEndPoint endPoint, TimeSpan timeout = default(TimeSpan))
+        {
             var connection = new NetworkConnection(endPoint);
 
             Util.Log("Connecting to terminal...");
@@ -76,6 +85,17 @@ namespace Syndll2
         public static async Task<NetworkConnection> ConnectAsync(string host, int port = 3734, TimeSpan timeout = default(TimeSpan))
         {
             var endPoint = GetEndPoint(host, port);
+            return await ConnectAsync(endPoint);
+        }
+
+        public static async Task<NetworkConnection> ConnectAsync(IPAddress ipAddress, int port = 3734, TimeSpan timeout = default(TimeSpan))
+        {
+            var endPoint = new IPEndPoint(ipAddress, port);
+            return await ConnectAsync(endPoint);
+        }
+
+        public static async Task<NetworkConnection> ConnectAsync(IPEndPoint endPoint, TimeSpan timeout = default(TimeSpan))
+        {
             var connection = new NetworkConnection(endPoint);
 
             Util.Log("Connecting to terminal...");
@@ -115,11 +135,22 @@ namespace Syndll2
                                                       port,
                                                       "A valid TCP port must be specified.  If uncertain, leave blank and it will use the default of 3734.");
 
-            // Make sure we have a single endpoint.
-            // This ensures the gatekeeper cannot be cheated by different dns names for the same endpoint.
-            var ipAddress = Dns.GetHostAddresses(host).FirstOrDefault();
-            if (ipAddress == null)
-                throw new ArgumentException("Invalid host address.", "host");
+            IPAddress ipAddress;
+            if (IPAddress.TryParse(host, out ipAddress))
+            {
+                // We have an IP address, but make sure that we are not affected by leading zeros being treated as octal numbers.  See:
+                // http://connect.microsoft.com/VisualStudio/feedback/details/634288/system-net-ipaddress-parse-mistake
+
+                ipAddress = new IPAddress(host.Split('.').Select(byte.Parse).ToArray());
+            }
+            else
+            {
+                // Look up the DNS host name to make sure we have a single endpoint.
+                // This ensures the gatekeeper cannot be cheated by different dns names for the same endpoint.
+                ipAddress = Dns.GetHostAddresses(host).FirstOrDefault();
+                if (ipAddress == null)
+                    throw new ArgumentException("Invalid host address.", "host");
+            }
 
             return new IPEndPoint(ipAddress, port);
         }
