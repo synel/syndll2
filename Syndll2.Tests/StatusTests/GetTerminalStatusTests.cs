@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
@@ -41,38 +40,23 @@ namespace Syndll2.Tests.StatusTests
             // Test that we got some status back.
             Assert.IsNotNull(status);
 
-            // Test the hardware and firmware versions
-            Assert.AreEqual(8, status.HardwareModel);
-            Assert.AreEqual(0, status.HardwareRevision);
-            Assert.AreEqual(80234, status.FirmwareVersion);
-
-            // Test that we are talking to a 785 and it is powered on.
-            Assert.AreEqual(TerminalTypes.SY78x, status.TerminalType);
-            Assert.IsTrue(status.PoweredOn);
-
-            // Test that the clock is +/- 5 minutes.  Higher accuracy isn't important for this test.
-            Assert.AreEqual(DateTimeKind.Unspecified, status.Timestamp.Kind);
-            Assert.IsTrue(Math.Abs((DateTime.Now - status.Timestamp).TotalMinutes) < 5);
-
-            // Test the current function.  TODO: this will vary
-            Assert.AreEqual('I', status.ActiveFunction);
-
-            // Test the buffers and memory reported.  TODO: these may vary
-            //Assert.AreEqual(0, status.BuffersFull);
-            //Assert.AreEqual(0, status.BuffersFaulty);
-            //Assert.AreEqual(0, status.BuffersTransmitted);
-            //Assert.AreEqual(6128, status.BuffersEmpty);
-            //Assert.AreEqual(79872, status.MemoryUsed);
-
-            // Test the user defined field
-            Assert.AreEqual(7234, status.UserDefinedField);
-
-            // Test the network info
-            Assert.AreEqual(TransportType.Tcp, status.TransportType);
-            Assert.AreEqual(TimeSpan.FromSeconds(15), status.PollingInterval);
-
-            // Test the fingerprint mode
-            Assert.AreEqual(FingerprintUnitModes.Slave, status.FingerprintUnitMode);
+            Debug.WriteLine("");
+            Debug.WriteLine("Hardware Model:      {0}", status.HardwareModel);
+            Debug.WriteLine("Hardware Revision:   {0}", status.HardwareRevision);
+            Debug.WriteLine("Firmware Version:    {0}", status.FirmwareVersion);
+            Debug.WriteLine("Terminal Type:       {0}", status.TerminalType);
+            Debug.WriteLine("Current Time:        {0:g}", status.Timestamp);
+            Debug.WriteLine("Active Function:     {0}", status.ActiveFunction);
+            Debug.WriteLine("Powered On:          {0}", status.PoweredOn);
+            Debug.WriteLine("Buffers Full:        {0}", status.BuffersFull);
+            Debug.WriteLine("Buffers Faulty:      {0}", status.BuffersFaulty);
+            Debug.WriteLine("Buffers Transmitted: {0}", status.BuffersTransmitted);
+            Debug.WriteLine("Buffers Empty:       {0}", status.BuffersEmpty);
+            Debug.WriteLine("Memory Used:         {0} bytes", status.MemoryUsed);
+            Debug.WriteLine("Polling Interval:    {0} seconds", status.PollingInterval.TotalSeconds);
+            Debug.WriteLine("Transport Type:      {0}", new object[] {status.TransportType.ToString().ToUpperInvariant()});
+            Debug.WriteLine("FPU Mode:            {0}", status.FingerprintUnitMode);
+            Debug.WriteLine("");
         }
     }
 }

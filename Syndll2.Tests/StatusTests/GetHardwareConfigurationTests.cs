@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
@@ -33,23 +33,17 @@ namespace Syndll2.Tests.StatusTests
             // Test that we got some configuration data back.
             Assert.IsNotNull(config);
 
-            // Test the firmware version and date
-            Assert.AreEqual(80234, config.FirmwareVersion);
-            Assert.AreEqual(new DateTime(2005, 6, 9), config.FirmwareDate);
-
-            // Test the hardware configuration
-            Assert.AreEqual(TerminalTypes.SY78x, config.TerminalType);
-            Assert.AreEqual(KeyboardTypes.Big_24Keys, config.KeyboardType);
-            Assert.AreEqual(DisplayTypes.DoubleLine, config.DisplayType);
-            Assert.AreEqual(FingerprintUnitModes.Slave, config.FingerprintUnitMode);
-            Assert.AreEqual(3, config.FingerprintUnitType);
-
-            // Test the host serial parameters
-            Assert.AreEqual("8n1", config.HostSerialParameters);
-            Assert.AreEqual(19200, config.HostSerialBaudRate);
-
-            // Test the terminal id
-            Assert.AreEqual(TestSettings.TerminalId, config.TerminalId);
+            Debug.WriteLine("");
+            Debug.WriteLine("Terminal ID:         {0}", config.TerminalId);
+            Debug.WriteLine("Terminal Type:       {0}", config.TerminalType);
+            Debug.WriteLine("Firmware Version:    {0} ({1:d})", config.FirmwareVersion, config.FirmwareDate);
+            Debug.WriteLine("Keyboard Type:       {0}", config.KeyboardType);
+            Debug.WriteLine("Display Type:        {0}", config.DisplayType);
+            Debug.WriteLine("FPU Type:            {0}", config.FingerprintUnitType);
+            Debug.WriteLine("FPU Mode:            {0}", config.FingerprintUnitMode);
+            Debug.WriteLine("Serial Port Info:    {0} {1}", config.HostSerialBaudRate, config.HostSerialParameters.ToUpperInvariant());
+            Debug.WriteLine("User Defined Field:  {0}", config.UserDefinedField);
+            Debug.WriteLine("");
         }
     }
 }

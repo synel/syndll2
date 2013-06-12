@@ -1,6 +1,4 @@
-﻿using System;
-using System.Net;
-using System.Net.NetworkInformation;
+﻿using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
@@ -35,25 +33,20 @@ namespace Syndll2.Tests.StatusTests
             // Test that we got some configuration data back.
             Assert.IsNotNull(config);
 
-            // Test the network card type and firmware version
-            Assert.AreEqual(NetworkCardTypes.B_Ethernet10Or100Mbps, config.NetworkCardType);
-            Assert.AreEqual(86, config.NetworkCardFirmwareVersion);
-
-            // Test MAC sending and polling modes
-            Assert.IsTrue(config.EnableSendMAC);
-            Assert.IsTrue(config.EnablePolling);
-            Assert.AreEqual(TimeSpan.FromSeconds(15), config.PollingInterval);
-
-            // Test the transport and IP settings // TODO: Can we determine the correct values from the IP address somehow?
-            Assert.AreEqual(TransportType.Tcp, config.TransportType);
-            Assert.AreEqual(new PhysicalAddress(new byte[] {0x00, 0x08, 0xDC, 0x13, 0x29, 0x92}), config.TerminalMACAddress);
-            Assert.AreEqual(IPAddress.Parse(TestSettings.HostAddress), config.TerminalIPAddress);
-            Assert.AreEqual(IPAddress.Parse("10.10.10.1"), config.GatewayIPAddress);
-            Assert.AreEqual(IPAddress.Parse("10.10.11.35"), config.RemoteIPAddress);
-            Assert.AreEqual(IPAddress.Parse("255.255.254.0"), config.SubnetMask);
-            Assert.AreEqual(TestSettings.TcpPort, config.TerminalPort);
-            Assert.AreEqual(3734, config.RemotePort);
-            Assert.IsFalse(config.EnableDHCP);
+            Debug.WriteLine("");
+            Debug.WriteLine("Network Card:        {0} (ver {1})", config.NetworkCardType, config.NetworkCardFirmwareVersion);
+            Debug.WriteLine("Transport Type:      {0}", new object[] { config.TransportType.ToString().ToUpperInvariant() });
+            Debug.WriteLine("MAC Address:         {0}", config.TerminalMACAddress);
+            Debug.WriteLine("IP Address/Port:     {0}:{1}", config.TerminalIPAddress, config.TerminalPort);
+            Debug.WriteLine("Remote Address/Port: {0}:{1}", config.RemoteIPAddress, config.RemotePort);
+            Debug.WriteLine("Subnet Mask:         {0}", config.SubnetMask);
+            Debug.WriteLine("Gateway Address:     {0}", config.GatewayIPAddress);
+            Debug.WriteLine("Disconnect Time:     {0} seconds", config.DisconnectTime.TotalSeconds);
+            Debug.WriteLine("Polling Interval:    {0} seconds", config.PollingInterval.TotalSeconds);
+            Debug.WriteLine("Polling Enabled:     {0}", config.EnablePolling);
+            Debug.WriteLine("DHCP Enabled:        {0}", config.EnableDHCP);
+            Debug.WriteLine("MAC Sending Enabled: {0}", config.EnableSendMAC);
+            Debug.WriteLine("");
         }
     }
 }
