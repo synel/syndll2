@@ -93,6 +93,8 @@ This code is safe for production, but should still be considered *unstable*.
  
 **Not yet implemented**
  - Serial or modem connection.
+ - Firmware Updating
+ - Online Mode (polling)
  
 ### Solution Structure
 
@@ -106,10 +108,6 @@ All source files are shared as links from the main project.
 **Syndll2.Tests**  
 This project contains unit tests to prove functionality.
 Most are "live tests" that require a terminal to test against.
-
-**Syndll2.TimeAmerica**  
-This library contains specific code for the Time America SAL, such as the custom parsing of terminal data.
-It is included here as an example of code that you might write for your own implementation.
 
 
 ### Questions / Issues
