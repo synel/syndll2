@@ -170,7 +170,7 @@ namespace Syndll2
 
             // Bug in firmware.  We always receive a NACK instead of an ACK for this command.
             if (response.Command == PrimaryResponseCommand.NotAcknowledged)
-                response = Response.Parse(response.RawResponse.Replace(ControlChars.NACK, ControlChars.ACK), _client.TerminalId);
+                response = new Response(response.RawResponse, PrimaryResponseCommand.Acknowledged, response.Data);
 
             return response;
         }
