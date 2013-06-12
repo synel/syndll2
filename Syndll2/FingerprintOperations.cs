@@ -135,7 +135,7 @@ namespace Syndll2
             var currentBatch = 1;
             var templatesRetrieved = 0;
 
-            var data = string.Format("L0{0:D2}", batchSize);
+            var data = string.Format("L0{0:D2}{1:D5}{2:D5}", batchSize, 1, 0);
             var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, "vL0", "vF0");
 
             // v0L00200001000020000000001000000000118:1(EOT)
@@ -180,7 +180,7 @@ namespace Syndll2
             var currentBatch = 1;
             var templatesRetrieved = 0;
 
-            var data = string.Format("L0{0:D2}", batchSize);
+            var data = string.Format("L0{0:D2}{1:D5}{2:D5}", batchSize, 1, 0);
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, "vL0", "vF0");
 
             // v0L00200001000020000000001000000000118:1(EOT)
