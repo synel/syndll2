@@ -70,7 +70,7 @@
     <Compile Include="FingerprintTests\ListFingerprintTests.cs" />
     <Compile Include="FingerprintTests\PutFingerprintTests.cs" />
     <Compile Include="FingerprintTests\DeleteFingerprintTests.cs" />
-    <Compile Include="FingerprintTests\GetFingerprintTests.cs" />
+    <Compile Include="FingerprintTests\PutAndGetFingerprintTests.cs" />
     <Compile Include="FingerprintTests\SetFingerprintModeTests.cs" />
     <Compile Include="FingerprintTests\TestTemplate.cs" />
     <Compile Include="ProgrammingTests\DeleteTableTests.cs" />
