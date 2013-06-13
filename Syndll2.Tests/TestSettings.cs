@@ -38,12 +38,12 @@ namespace Syndll2.Tests
 
         public static SynelClient Connect()
         {
-            return SynelClient.Connect(HostAddress, TcpPort, TerminalId, TimeSpan.FromSeconds(15));
+            return SynelClient.Connect(HostAddress, TcpPort, TerminalId, TimeSpan.FromSeconds(5));
         }
 
         public static Task<SynelClient> ConnectAsync()
         {
-            return SynelClient.ConnectAsync(HostAddress, TcpPort, TerminalId, TimeSpan.FromSeconds(15));
+            return SynelClient.ConnectAsync(HostAddress, TcpPort, TerminalId, TimeSpan.FromSeconds(5));
         }
     }
 }

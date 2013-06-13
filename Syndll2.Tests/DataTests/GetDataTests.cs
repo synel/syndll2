@@ -8,24 +8,14 @@ namespace Syndll2.Tests.DataTests
     [TestClass]
     public class GetDataTests
     {
-        //[TestInitialize]
-        //public void Initialize()
-        //{
-        //    // start these tests with clean data
-        //    using (var client = TestSettings.Connect())
-        //    {
-        //        client.Operations.GetAllData();
-        //        client.Operations.ClearBuffer();
-        //    }
-        //}
-
         [TestMethod]
         public void Can_Get_Data()
         {
             using (var client = TestSettings.Connect())
             {
                 var data = client.Terminal.GetDataAndAcknowledge();
-                Assert.IsNotNull(data);
+                if (data == null)
+                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be a transaction data on the terminal.");
             }
         }
 
@@ -35,7 +25,8 @@ namespace Syndll2.Tests.DataTests
             using (var client = await TestSettings.ConnectAsync())
             {
                 var data = await client.Terminal.GetDataAndAcknowledgeAsync();
-                Assert.IsNotNull(data);
+                if (data == null)
+                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be a transaction data on the terminal.");
             }
         }
 
@@ -45,7 +36,8 @@ namespace Syndll2.Tests.DataTests
             using (var client = TestSettings.Connect())
             {
                 var data = client.Terminal.GetFullDataBlockAndAcknowledge();
-                Assert.IsNotNull(data);
+                if (data == null)
+                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be two or more transactions on the terminal.");
             }
         }
 
@@ -55,7 +47,8 @@ namespace Syndll2.Tests.DataTests
             using (var client = await TestSettings.ConnectAsync())
             {
                 var data = await client.Terminal.GetFullDataBlockAndAcknowledgeAsync();
-                Assert.IsNotNull(data);
+                if (data == null)
+                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be two or more transactions on the terminal.");
             }
         }
 
@@ -71,6 +64,9 @@ namespace Syndll2.Tests.DataTests
                     data.Add(item);
             }
 
+            if (data.Count == 0)
+                Assert.Inconclusive("This test is meant to be run individually, and there needs to be some transaction data on the terminal.");
+            
             Debug.WriteLine("");
             Debug.WriteLine("DATA RETRIEVED");
             Debug.WriteLine("--------------");
@@ -89,6 +85,9 @@ namespace Syndll2.Tests.DataTests
                 while ((item = await client.Terminal.GetDataAndAcknowledgeAsync()) != null)
                     data.Add(item);
             }
+
+            if (data.Count == 0)
+                Assert.Inconclusive("This test is meant to be run individually, and there needs to be some transaction data on the terminal.");
 
             Debug.WriteLine("");
             Debug.WriteLine("DATA RETRIEVED");
