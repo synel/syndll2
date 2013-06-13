@@ -123,9 +123,6 @@
     <Compile Include="..\Syndll2\Data\TextAlignment.cs">
       <Link>Data\TextAlignment.cs</Link>
     </Compile>
-    <Compile Include="..\Syndll2\Data\TimeAndFunction.cs">
-      <Link>Data\TimeAndFunction.cs</Link>
-    </Compile>
     <Compile Include="..\Syndll2\Extensions.cs">
       <Link>Extensions.cs</Link>
     </Compile>

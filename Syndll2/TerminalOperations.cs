@@ -66,8 +66,8 @@ namespace Syndll2
         /// </summary>
         public void SetTerminalStatus(DateTime clockDateTime, char activeFunction)
         {
-            var request = new TimeAndFunction(clockDateTime, activeFunction);
-            var response = _client.SendAndReceive(RequestCommand.SetStatus, request.ToString(), ACK);
+            var data = string.Format(CultureInfo.InvariantCulture, "{0:yyMMddHHmm}{1}{0:ss}", clockDateTime, activeFunction);
+            var response = _client.SendAndReceive(RequestCommand.SetStatus, data, ACK);
             ValidateAcknowledgment(response);
         }
 
@@ -77,8 +77,8 @@ namespace Syndll2
         /// </summary>
         public async Task SetTerminalStatusAsync(DateTime clockDateTime, char activeFunction)
         {
-            var request = new TimeAndFunction(clockDateTime, activeFunction);
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SetStatus, request.ToString(), ACK);
+            var data = string.Format(CultureInfo.InvariantCulture, "{0:yyMMddHHmm}{1}{0:ss}", clockDateTime, activeFunction);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SetStatus, data, ACK);
             ValidateAcknowledgment(response);
         }
 #endif
@@ -87,7 +87,6 @@ namespace Syndll2
         #region SetTerminalClock
         /// <summary>
         /// Sets the terminal's clock.
-        /// Does not change the currently active function.
         /// </summary>
         public void SetTerminalClock(DateTime clockDateTime)
         {
@@ -97,11 +96,34 @@ namespace Syndll2
 #if NET_45
         /// <summary>
         /// Returns an awaitable task that sets the terminal's clock.
-        /// Does not change the currently active function.
         /// </summary>
         public async Task SetTerminalClockAsync(DateTime clockDateTime)
         {
             await SetTerminalStatusAsync(clockDateTime, '#');
+        }
+#endif
+        #endregion
+
+        #region SetActiveFunction
+        /// <summary>
+        /// Sets the terminal's active function.
+        /// </summary>
+        public void SetActiveFunction(char activeFunction)
+        {
+            var data = string.Format("##########{0}##", activeFunction);
+            var response = _client.SendAndReceive(RequestCommand.SetStatus, data, ACK);
+            ValidateAcknowledgment(response);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that sets the terminal's active function.
+        /// </summary>
+        public async Task SetActiveFunctionAsync(char activeFunction)
+        {
+            var data = string.Format("##########{0}##", activeFunction);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.SetStatus, data, ACK);
+            ValidateAcknowledgment(response);
         }
 #endif
         #endregion

@@ -84,7 +84,6 @@
     <Compile Include="MessageReceivedEventArgs.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="GateKeeper.cs" />
-    <Compile Include="Data\TimeAndFunction.cs" />
     <Compile Include="Data\TechnicianModeSettings.cs" />
     <Compile Include="Data\TerminalStatus.cs" />
     <Compile Include="SecondaryResponseCommand.cs" />
