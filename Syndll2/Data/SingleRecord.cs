@@ -36,7 +36,7 @@ namespace Syndll2.Data
         {
             get { return _value; }
         }
-        
+
         // Sample Raw Data  C = command, T = terminal id, CCCC = CRC code
         // Only the Data field should be passed in.
         // S0MFSV8000000004005 ENTER FUNCTION 60>6
@@ -51,7 +51,7 @@ namespace Syndll2.Data
             if (data == null)
                 throw new ArgumentNullException("data");
 
-            const int minLength = 14;
+            const int minLength = 8;
             if (data.Length < minLength)
                 throw new ArgumentException(
                     string.Format(
@@ -77,7 +77,10 @@ namespace Syndll2.Data
             int i;
             if (!int.TryParse(data.Substring(7, 1), NumberStyles.None, CultureInfo.InvariantCulture, out i))
                 throw new InvalidDataException("Couldn't parse the result code from the single record data.");
-            _resultCode = (SearchResult) i;
+            _resultCode = (SearchResult)i;
+
+            if (_resultCode != SearchResult.Success)
+                return;
 
             if (!int.TryParse(data.Substring(8, 6), NumberStyles.None, CultureInfo.InvariantCulture, out _recordNumber))
                 throw new InvalidDataException("Couldn't parse the record number from the single record data.");
