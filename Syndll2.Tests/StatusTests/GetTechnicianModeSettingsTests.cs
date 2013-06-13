@@ -14,7 +14,8 @@ namespace Syndll2.Tests.StatusTests
             using (var client = TestSettings.Connect())
             {
                 var settings = client.Terminal.GetTechnicianModeSettings();
-                AssertValidSettings(settings);
+                Assert.IsNotNull(settings);
+                DisplaySettings(settings);
             }
         }
 
@@ -24,15 +25,13 @@ namespace Syndll2.Tests.StatusTests
             using (var client = await TestSettings.ConnectAsync())
             {
                 var settings = await client.Terminal.GetTechnicianModeSettingsAsync();
-                AssertValidSettings(settings);
+                Assert.IsNotNull(settings);
+                DisplaySettings(settings);
             }
         }
 
-        private static void AssertValidSettings(TechnicianModeSettings settings)
+        private static void DisplaySettings(TechnicianModeSettings settings)
         {
-            // Test that we got some status back.
-            Assert.IsNotNull(settings);
-
             Debug.WriteLine("");
             Debug.WriteLine("Terminal ID:     {0}", settings.TerminalId);
             Debug.WriteLine("Serial Port 0:   {0} {1}", settings.SerialPort0BaudRate, settings.SerialPort0Mode);

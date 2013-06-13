@@ -21,7 +21,8 @@ namespace Syndll2.Tests.StatusTests
             using (var client = TestSettings.Connect())
             {
                 var status = client.Terminal.GetTerminalStatus();
-                AssertValidTerminalStatus(status);
+                Assert.IsNotNull(status);
+                DisplayTerminalStatus(status);
             }
         }
 
@@ -31,15 +32,13 @@ namespace Syndll2.Tests.StatusTests
             using (var client = await TestSettings.ConnectAsync())
             {
                 var status = await client.Terminal.GetTerminalStatusAsync();
-                AssertValidTerminalStatus(status);
+                Assert.IsNotNull(status);
+                DisplayTerminalStatus(status);
             }
         }
 
-        private static void AssertValidTerminalStatus(TerminalStatus status)
+        private static void DisplayTerminalStatus(TerminalStatus status)
         {
-            // Test that we got some status back.
-            Assert.IsNotNull(status);
-
             Debug.WriteLine("");
             Debug.WriteLine("Hardware Model:      {0}", status.HardwareModel);
             Debug.WriteLine("Hardware Revision:   {0}", status.HardwareRevision);
@@ -54,7 +53,7 @@ namespace Syndll2.Tests.StatusTests
             Debug.WriteLine("Buffers Empty:       {0}", status.BuffersEmpty);
             Debug.WriteLine("Memory Used:         {0} bytes", status.MemoryUsed);
             Debug.WriteLine("Polling Interval:    {0} seconds", status.PollingInterval.TotalSeconds);
-            Debug.WriteLine("Transport Type:      {0}", new object[] {status.TransportType.ToString().ToUpperInvariant()});
+            Debug.WriteLine("Transport Type:      {0}", new object[] { status.TransportType.ToString().ToUpperInvariant() });
             Debug.WriteLine("FPU Mode:            {0}", status.FingerprintUnitMode);
             Debug.WriteLine("");
         }

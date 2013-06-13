@@ -15,7 +15,8 @@ namespace Syndll2.Tests.StatusTests
             using (var p = client.Terminal.Programming())
             {
                 var status = p.Fingerprint.GetUnitStatus();
-                AssertValidFingerprintUnitStatus(status);
+                Assert.IsNotNull(status);
+                DisplayStatus(status);
             }
         }
 
@@ -26,19 +27,16 @@ namespace Syndll2.Tests.StatusTests
             using (var p = client.Terminal.Programming())
             {
                 var status = await p.Fingerprint.GetUnitStatusAsync();
-                AssertValidFingerprintUnitStatus(status);
+                Assert.IsNotNull(status);
+                DisplayStatus(status);
             }
         }
 
-        private static void AssertValidFingerprintUnitStatus(FingerprintUnitStatus status)
+        private static void DisplayStatus(FingerprintUnitStatus status)
         {
-            // Just test that we got some status back.
-            Assert.IsNotNull(status);
-
-            // Output that status for debugging.
             Debug.WriteLine("");
             Debug.WriteLine("Comparison Mode:   {0}", status.ComparisonMode);
-            Debug.WriteLine("Kernel Version:    {0}", new object[] {status.KernelVersion});
+            Debug.WriteLine("Kernel Version:    {0}", new object[] { status.KernelVersion });
             Debug.WriteLine("Loaded Templates:  {0}", status.LoadedTemplates);
             Debug.WriteLine("Maximum Templates: {0}", status.MaximumTemplates);
             Debug.WriteLine("FPU Mode:          {0}", status.FingerprintUnitMode);

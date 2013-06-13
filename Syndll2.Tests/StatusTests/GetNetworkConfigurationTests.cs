@@ -14,7 +14,8 @@ namespace Syndll2.Tests.StatusTests
             using (var client = TestSettings.Connect())
             {
                 var configuration = client.Terminal.GetNetworkConfiguration();
-                AssertValidNetworkConfiguration(configuration);
+                Assert.IsNotNull(configuration);
+                DisplayConfiguration(configuration);
             }
         }
 
@@ -24,15 +25,13 @@ namespace Syndll2.Tests.StatusTests
             using (var client = await TestSettings.ConnectAsync())
             {
                 var configuration = await client.Terminal.GetNetworkConfigurationAsync();
-                AssertValidNetworkConfiguration(configuration);
+                Assert.IsNotNull(configuration);
+                DisplayConfiguration(configuration);
             }
         }
 
-        private static void AssertValidNetworkConfiguration(NetworkConfiguration config)
+        private static void DisplayConfiguration(NetworkConfiguration config)
         {
-            // Test that we got some configuration data back.
-            Assert.IsNotNull(config);
-
             Debug.WriteLine("");
             Debug.WriteLine("Network Card:        {0} (ver {1})", config.NetworkCardType, config.NetworkCardFirmwareVersion);
             Debug.WriteLine("Transport Type:      {0}", new object[] { config.TransportType.ToString().ToUpperInvariant() });

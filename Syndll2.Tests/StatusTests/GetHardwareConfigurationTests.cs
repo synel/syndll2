@@ -14,7 +14,8 @@ namespace Syndll2.Tests.StatusTests
             using (var client = TestSettings.Connect())
             {
                 var configuration = client.Terminal.GetHardwareConfiguration();
-                AssertValidHardwareConfiguration(configuration);
+                Assert.IsNotNull(configuration);
+                DisplayConfiguration(configuration);
             }
         }
 
@@ -24,15 +25,13 @@ namespace Syndll2.Tests.StatusTests
             using (var client = await TestSettings.ConnectAsync())
             {
                 var configuration = await client.Terminal.GetHardwareConfigurationAsync();
-                AssertValidHardwareConfiguration(configuration);
+                Assert.IsNotNull(configuration);
+                DisplayConfiguration(configuration);
             }
         }
 
-        private static void AssertValidHardwareConfiguration(HardwareConfiguration config)
+        private static void DisplayConfiguration(HardwareConfiguration config)
         {
-            // Test that we got some configuration data back.
-            Assert.IsNotNull(config);
-
             Debug.WriteLine("");
             Debug.WriteLine("Terminal ID:         {0}", config.TerminalId);
             Debug.WriteLine("Terminal Type:       {0}", config.TerminalType);
