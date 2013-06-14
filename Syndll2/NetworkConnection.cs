@@ -63,14 +63,22 @@ namespace Syndll2
             // Enter the gate.  This will block until it is safe to connect.
             GateKeeper.Enter(endPoint, timeout);
 
-            // Now we can try to connect, using the specified timeout.
             var client = connection._tcpClient;
-            var result = client.BeginConnect(endPoint.Address, endPoint.Port, null, null);
-            result.AsyncWaitHandle.WaitOne(timeout, true);
-            if (!client.Connected)
+            try
             {
-                client.Close();
-                throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
+                // Now we can try to connect, using the specified timeout.
+                var result = client.BeginConnect(endPoint.Address, endPoint.Port, null, null);
+                result.AsyncWaitHandle.WaitOne(timeout, true);
+                if (!client.Connected)
+                {
+                    client.Close();
+                    throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
+                }
+            }
+            catch
+            {
+                GateKeeper.Exit(endPoint);
+                throw;
             }
 
             // Get the stream for the connection
