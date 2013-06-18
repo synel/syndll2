@@ -13,13 +13,13 @@ namespace Syndll2
     internal class NetworkConnection : IConnection
     {
         private readonly IPEndPoint _endPoint;
-        private readonly TcpClient _tcpClient;
+        private readonly Socket _socket;
         private NetworkStream _stream;
         private bool _disposed;
 
         public bool Connected
         {
-            get { return _tcpClient != null && _tcpClient.Client != null && _tcpClient.Client.Connected; }
+            get { return _socket != null && _socket.Connected; }
         }
 
         public Stream Stream
@@ -30,7 +30,7 @@ namespace Syndll2
         private NetworkConnection(IPEndPoint endPoint)
         {
             _endPoint = endPoint;
-            _tcpClient = new TcpClient
+            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
                 {
                     // todo: see if these timeout values need adjusting
                     ReceiveTimeout = 5000,
@@ -63,15 +63,15 @@ namespace Syndll2
             // Enter the gate.  This will block until it is safe to connect.
             GateKeeper.Enter(endPoint, timeout);
 
-            var client = connection._tcpClient;
+            var socket = connection._socket;
             try
             {
                 // Now we can try to connect, using the specified timeout.
-                var result = client.BeginConnect(endPoint.Address, endPoint.Port, null, null);
+                var result = socket.BeginConnect(endPoint, socket.EndConnect, null);
                 result.AsyncWaitHandle.WaitOne(timeout, true);
-                if (!client.Connected)
+                if (!socket.Connected)
                 {
-                    client.Close();
+                    socket.Close();
                     throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
                 }
             }
@@ -82,7 +82,7 @@ namespace Syndll2
             }
 
             // Get the stream for the connection
-            connection._stream = client.GetStream();
+            connection._stream = new NetworkStream(socket, true);
 
             Util.Log("Connected!");
 
@@ -116,16 +116,19 @@ namespace Syndll2
             await GateKeeper.EnterAsync(endPoint, timeout);
             
             // Now we can try to connect, using the specified timeout.
-            var client = connection._tcpClient;
-            await Task.WhenAny(client.ConnectAsync(endPoint.Address, endPoint.Port), Task.Delay(timeout));
-            if (!client.Connected)
+            var socket = connection._socket;
+
+            var connectTask = Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, endPoint, null);
+            
+            await Task.WhenAny(connectTask, Task.Delay(timeout));
+            if (!socket.Connected)
             {
-                client.Close();
+                socket.Close();
                 throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
             }
 
             // Get the stream for the connection
-            connection._stream = client.GetStream();
+            connection._stream = new NetworkStream(socket, true);
 
             Util.Log("Connected!");
 
@@ -175,8 +178,7 @@ namespace Syndll2
                 return;
             }
 
-            _stream.Close();
-            _tcpClient.Close();
+            _socket.Disconnect(false);
             GateKeeper.Exit(_endPoint);
 
             Util.Log("Disconnected.");
@@ -195,7 +197,8 @@ namespace Syndll2
             if (disposing)
             {
                 Disconnect();
-                _stream.Dispose();
+                if (_stream != null)
+                    _stream.Dispose();
             }
 
             _disposed = true;
