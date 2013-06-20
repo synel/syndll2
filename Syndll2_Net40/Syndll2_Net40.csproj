@@ -111,9 +111,6 @@
     <Compile Include="..\Syndll2\Data\TechnicianModeSettings.cs">
       <Link>Data\TechnicianModeSettings.cs</Link>
     </Compile>
-    <Compile Include="..\Syndll2\Data\TerminalData.cs">
-      <Link>Data\TerminalData.cs</Link>
-    </Compile>
     <Compile Include="..\Syndll2\Data\TerminalStatus.cs">
       <Link>Data\TerminalStatus.cs</Link>
     </Compile>
@@ -156,6 +153,12 @@
     <Compile Include="..\Syndll2\Properties\AssemblyInfo.cs">
       <Link>Properties\AssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\PushNotification.cs">
+      <Link>PushNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\Receiver.cs">
+      <Link>Receiver.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\RequestCommand.cs">
       <Link>RequestCommand.cs</Link>
     </Compile>
@@ -179,6 +182,9 @@
     </Compile>
     <Compile Include="..\Syndll2\SynelNumericFormat.cs">
       <Link>SynelNumericFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\SynelServer.cs">
+      <Link>SynelServer.cs</Link>
     </Compile>
     <Compile Include="..\Syndll2\TerminalOperations.cs">
       <Link>TerminalOperations.cs</Link>

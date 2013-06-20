@@ -7,12 +7,14 @@ namespace Syndll2
     {
         public string RawResponse { get; private set; }
         public PrimaryResponseCommand Command { get; private set; }
+        public int TerminalId { get; private set; }
         public string Data { get; private set; }
         
-        public Response(string rawResponse, PrimaryResponseCommand command, string data = null)
+        public Response(string rawResponse, PrimaryResponseCommand command, int terminalId, string data = null)
         {
             RawResponse = rawResponse;
             Command = command;
+            TerminalId = terminalId;
             Data = data;
         }
 
@@ -20,9 +22,8 @@ namespace Syndll2
         /// Parses the response string returned from the terminal, ensuring that the response is valid.
         /// </summary>
         /// <param name="s">The entire response string, including ACK, NACK, CRC, and EOT where appropriate.</param>
-        /// <param name="expectedTerminalId">The terminal ID that is expected in the response.</param>
         /// <returns>A validated <see cref="Response"/> object.</returns>
-        internal static Response Parse(string s, int expectedTerminalId)
+        internal static Response Parse(string s)
         {
             // check valid input
             if (s == null)
@@ -39,25 +40,22 @@ namespace Syndll2
             if (!SynelCRC.Verify(packet, crc))
                 throw new InvalidCrcException("Invalid CRC received from the terminal.");
 
-            // Get command
+            // Get the command.
             var cmd = packet[0];
             if (!Enum.IsDefined(typeof(PrimaryResponseCommand), (int)cmd))
                 throw new InvalidDataException("Unknown command received: " + cmd);
             var command = (PrimaryResponseCommand)cmd;
 
-            // Get terminal
+            // Get the terminal id.
             byte terminalId = Util.CharToTerminalId(packet[1]);
-            if (terminalId != expectedTerminalId)
-                throw new InvalidOperationException(
-                    string.Format("Got data for terminal {0} while talking to terminal {1}", terminalId, expectedTerminalId));
-
-            // Return when there is no data
+            
+            // Return when there is no data.
             if (packet.Length == 2)
-                return new Response(s, command);
+                return new Response(s, command, terminalId);
 
-            // Return when there IS data
+            // Return when there IS data.
             var data = packet.Substring(2);
-            return new Response(s, command, data);
+            return new Response(s, command, terminalId, data);
         }
 
         public bool Equals(Response other)

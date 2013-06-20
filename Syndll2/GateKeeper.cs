@@ -20,6 +20,9 @@ namespace Syndll2
 
         public static void Enter(IPEndPoint endPoint, TimeSpan timeout)
         {
+            if (endPoint == null)
+                return;
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -45,6 +48,9 @@ namespace Syndll2
 #if NET_45
         public static async Task EnterAsync(IPEndPoint endPoint, TimeSpan timeout)
         {
+            if (endPoint == null)
+                return;
+
             var sw = new Stopwatch();
             sw.Start();
 
@@ -70,6 +76,9 @@ namespace Syndll2
 
         public static void Exit(IPEndPoint endPoint)
         {
+            if (endPoint == null)
+                return;
+
             // We will do this in a new thread as to not block the results.
             Task.Factory.StartNew(() =>
                 {

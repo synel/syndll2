@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Syndll2
@@ -12,9 +13,9 @@ namespace Syndll2
     /// </summary>
     internal class NetworkConnection : IConnection
     {
-        private readonly IPEndPoint _endPoint;
         private readonly Socket _socket;
-        private NetworkStream _stream;
+        private readonly ManualResetEvent _acceptSignaler = new ManualResetEvent(false);
+        private IPEndPoint _remoteEndPoint;
         private bool _disposed;
 
         public bool Connected
@@ -22,20 +23,17 @@ namespace Syndll2
             get { return _socket != null && _socket.Connected; }
         }
 
-        public Stream Stream
+        public Stream Stream { get; internal set; }
+
+        private NetworkConnection(Socket socket = null)
         {
-            get { return _stream; }
-        }
-        
-        private NetworkConnection(IPEndPoint endPoint)
-        {
-            _endPoint = endPoint;
-            _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-                {
-                    // todo: see if these timeout values need adjusting
-                    ReceiveTimeout = 5000,
-                    SendTimeout = 5000
-                };
+            _socket = socket ??
+                      new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                          {
+                              // todo: see if these timeout values need adjusting
+                              ReceiveTimeout = 5000,
+                              SendTimeout = 5000
+                          };
         }
 
         public static NetworkConnection Connect(string host, int port = 3734, TimeSpan timeout = default(TimeSpan))
@@ -52,8 +50,6 @@ namespace Syndll2
 
         public static NetworkConnection Connect(IPEndPoint endPoint, TimeSpan timeout = default(TimeSpan))
         {
-            var connection = new NetworkConnection(endPoint);
-
             Util.Log("Connecting to terminal...");
 
             // default timeout is two seconds
@@ -63,6 +59,7 @@ namespace Syndll2
             // Enter the gate.  This will block until it is safe to connect.
             GateKeeper.Enter(endPoint, timeout);
 
+            var connection = new NetworkConnection();
             var socket = connection._socket;
             try
             {
@@ -81,8 +78,11 @@ namespace Syndll2
                 throw;
             }
 
+            // Track the endpoint separately in the connection so we can clean up properly
+            connection._remoteEndPoint = endPoint;
+
             // Get the stream for the connection
-            connection._stream = new NetworkStream(socket, true);
+            connection.Stream = new NetworkStream(socket, true);
 
             Util.Log("Connected!");
 
@@ -104,8 +104,6 @@ namespace Syndll2
 
         public static async Task<NetworkConnection> ConnectAsync(IPEndPoint endPoint, TimeSpan timeout = default(TimeSpan))
         {
-            var connection = new NetworkConnection(endPoint);
-
             Util.Log("Connecting to terminal...");
 
             // default timeout is two seconds
@@ -114,12 +112,13 @@ namespace Syndll2
 
             // Enter the gate.  This will block until it is safe to connect.
             await GateKeeper.EnterAsync(endPoint, timeout);
-            
+
             // Now we can try to connect, using the specified timeout.
+            var connection = new NetworkConnection();
             var socket = connection._socket;
 
             var connectTask = Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, endPoint, null);
-            
+
             await Task.WhenAny(connectTask, Task.Delay(timeout));
             if (!socket.Connected)
             {
@@ -127,14 +126,70 @@ namespace Syndll2
                 throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
             }
 
+            // Track the endpoint separately in the connection so we can clean up properly
+            connection._remoteEndPoint = endPoint;
+
             // Get the stream for the connection
-            connection._stream = new NetworkStream(socket, true);
+            connection.Stream = new NetworkStream(socket, true);
 
             Util.Log("Connected!");
 
             return connection;
         }
 #endif
+
+        public static NetworkConnection Listen(Action<Stream> action)
+        {
+            return Listen(3734, action);
+        }
+
+        public static NetworkConnection Listen(int port, Action<Stream> action)
+        {
+            var listener = new NetworkConnection();
+
+            var localEndPoint = new IPEndPoint(IPAddress.Any, port);
+            listener._socket.Bind(localEndPoint);
+            listener._socket.Listen(100);
+
+            Util.Log("Listening for inbound connections.");
+
+            Task.Factory.StartNew(() =>
+            {
+                while (!listener._disposed)
+                {
+                    listener._acceptSignaler.Reset();
+                    listener._socket.BeginAccept(ar =>
+                    {
+                        listener._acceptSignaler.Set();
+                        var socket = listener._socket.EndAccept(ar);
+
+                        var ep = (IPEndPoint)socket.RemoteEndPoint;
+                        Util.Log(string.Format("Inbound connection from {0}", ep.Address));
+
+                        GateKeeper.Enter(ep, TimeSpan.FromSeconds(2));
+
+                        try
+                        {
+                            using (var stream = new NetworkStream(socket))
+                            {
+                                action(stream);
+                            }
+                        }
+                        finally
+                        {
+                            socket.Disconnect(false);
+                            GateKeeper.Exit(ep);
+                            Util.Log("Disconnected.");
+                        }
+
+                    }, null);
+
+                    listener._acceptSignaler.WaitOne();
+                }
+            });
+
+            return listener;
+        }
 
         private static IPEndPoint GetEndPoint(string host, int port)
         {
@@ -174,12 +229,12 @@ namespace Syndll2
             if (!Connected)
             {
                 Util.Log("Already disconnected.");
-                GateKeeper.Exit(_endPoint);
+                GateKeeper.Exit(_remoteEndPoint);
                 return;
             }
 
             _socket.Disconnect(false);
-            GateKeeper.Exit(_endPoint);
+            GateKeeper.Exit(_remoteEndPoint);
 
             Util.Log("Disconnected.");
         }
@@ -197,8 +252,10 @@ namespace Syndll2
             if (disposing)
             {
                 Disconnect();
-                if (_stream != null)
-                    _stream.Dispose();
+                if (Stream != null)
+                    Stream.Dispose();
+                _socket.Dispose();
+                _acceptSignaler.Dispose();
             }
 
             _disposed = true;

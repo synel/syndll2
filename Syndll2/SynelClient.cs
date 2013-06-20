@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -17,6 +16,7 @@ namespace Syndll2
     public class SynelClient : IDisposable
     {
         private readonly IConnection _connection;
+        private readonly Receiver _receiver;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
         private bool _disposed;
@@ -51,10 +51,10 @@ namespace Syndll2
 
             _terminalId = terminalId;
             _connection = connection;
-            _terminal = new TerminalOperations(this);
 
-            // watch the stream in a separate thread
-            Task.Factory.StartNew(WatchStream);
+            _terminal = new TerminalOperations(this);
+            _receiver = new Receiver(_connection.Stream);
+            _receiver.WatchStream();
         }
 
         /// <summary>
@@ -167,6 +167,18 @@ namespace Syndll2
         /// <returns>The full command string, including CRC and EOT.</returns>
         private string CreateCommand(RequestCommand command, string data = null)
         {
+            return CreateCommand(command, _terminalId, data);
+        }
+
+        /// <summary>
+        /// Creates the full command string that is to be sent to the terminal.
+        /// </summary>
+        /// <param name="command">The request command.</param>
+        /// <param name="terminalId">The terminal id.</param>
+        /// <param name="data">Any data that should be sent along with the command.</param>
+        /// <returns>The full command string, including CRC and EOT.</returns>
+        internal static string CreateCommand(RequestCommand command, int terminalId, string data = null)
+        {
             // sanitize input for null data
             if (data == null)
                 data = string.Empty;
@@ -182,7 +194,7 @@ namespace Syndll2
             sb.Append((char)command);
 
             // The second character is the terminal ID.
-            sb.Append(Util.TerminalIdToChar(_terminalId));
+            sb.Append(Util.TerminalIdToChar(terminalId));
 
             // The data block comes next
             sb.Append(data);
@@ -194,78 +206,6 @@ namespace Syndll2
             sb.Append(ControlChars.EOT);
 
             return sb.ToString();
-        }
-
-        private readonly byte[] _rawReceiveBuffer = new byte[MaxPacketSize];
-        private readonly List<byte> _receiveBuffer = new List<byte>(MaxPacketSize * 2);
-
-        internal event EventHandler<MessageReceivedEventArgs> MessageReceived;
-
-        private void OnMessageReceived(MessageReceivedEventArgs args)
-        {
-            var handler = MessageReceived;
-            if (handler != null)
-                handler(this, args);
-        }
-
-        private void WatchStream()
-        {
-            // Make sure we are still connected
-            if (!Connected)
-                return;
-
-            // Begin an async read operation on the stream.
-            _connection.Stream.BeginRead(_rawReceiveBuffer, 0, MaxPacketSize, OnDataReceived, null);
-        }
-
-        private void OnDataReceived(IAsyncResult asyncResult)
-        {
-            // Make sure we are still connected
-            if (!Connected)
-                return;
-
-            // Conclude the async read operation.
-            var bytesRead = _connection.Stream.EndRead(asyncResult);
-
-            // Make sure the data is still good.
-            // (We should never get back zeros at the start of the buffer, but it can happen during a forced disconnection.)
-            if (bytesRead > 0 && _rawReceiveBuffer[0] == 0)
-                return;
-
-            // Copy the raw data read into the full receive buffer.
-            _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
-
-            // See if there is an EOT in the read buffer
-            int eotPosition;
-            while ((eotPosition = _receiveBuffer.IndexOf((byte)ControlChars.EOT)) >= 0)
-            {
-                // Pull out all before and including the EOT
-                var size = eotPosition + 1;
-                var data = new byte[size];
-                _receiveBuffer.CopyTo(0, data, 0, size);
-                _receiveBuffer.RemoveRange(0, size);
-
-                // Get a string representation of the packet data
-                var packet = Encoding.ASCII.GetString(data);
-
-                // Try to parse it
-                var args = new MessageReceivedEventArgs { RawResponse = packet };
-                try
-                {
-                    args.Response = Response.Parse(packet, _terminalId);
-                }
-                catch (Exception ex)
-                {
-                    // pass any exception into the event arguments
-                    args.Exception = ex;
-                }
-
-                // Raise the event
-                OnMessageReceived(args);
-            }
-
-            // Repeat, to continually watch the stream for incoming data.
-            WatchStream();
         }
 
         /// <summary>
@@ -303,6 +243,10 @@ namespace Syndll2
                     // If the valid list is populated, don't handle responses that aren't in it.
                     if (validResponses.Length > 0 && !validResponses.Any(x => args.RawResponse.StartsWith(x)))
                         return;
+
+                    // Ignore responses intended for other terminals
+                    if (args.Response != null && args.Response.TerminalId != _terminalId)
+                        return;
                 }
 
                 rawResponse = args.RawResponse;
@@ -310,7 +254,7 @@ namespace Syndll2
                 exception = args.Exception;
                 signal.Release();
             };
-            MessageReceived += handler;
+            _receiver.MessageReceived += handler;
 
             try
             {
@@ -329,7 +273,7 @@ namespace Syndll2
                         // Wait for the response or timeout
                         if (signal.Wait(5000))
                             signal.Release();
-                        MessageReceived -= handler;
+                        _receiver.MessageReceived -= handler;
 
                         if (rawResponse != null)
                             Util.Log("Received: " + rawResponse);
@@ -355,7 +299,7 @@ namespace Syndll2
             }
             finally
             {
-                MessageReceived -= handler;
+                _receiver.MessageReceived -= handler;
             }
         }
 
@@ -395,6 +339,10 @@ namespace Syndll2
                     // If the valid list is populated, don't handle responses that aren't in it.
                     if (validResponses.Length > 0 && !validResponses.Any(x => args.RawResponse.StartsWith(x)))
                         return;
+
+                    // Ignore responses intended for other terminals
+                    if (args.Response != null && args.Response.TerminalId != _terminalId)
+                        return;
                 }
 
                 rawResponse = args.RawResponse;
@@ -402,7 +350,7 @@ namespace Syndll2
                 exception = args.Exception;
                 signal.Release();
             };
-            MessageReceived += handler;
+            _receiver.MessageReceived += handler;
 
             try
             {
@@ -421,7 +369,7 @@ namespace Syndll2
                         // Wait for the response or timeout
                         if (await signal.WaitAsync(5000))
                             signal.Release();
-                        MessageReceived -= handler;
+                        _receiver.MessageReceived -= handler;
 
                         if (rawResponse != null)
                             Util.Log("Received: " + rawResponse);
@@ -447,7 +395,7 @@ namespace Syndll2
             }
             finally
             {
-                MessageReceived -= handler;
+                _receiver.MessageReceived -= handler;
             }
         }
 #endif
