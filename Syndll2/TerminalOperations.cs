@@ -426,7 +426,7 @@ namespace Syndll2
 
         #region ClearBuffer
         /// <summary>
-        /// Directs the terminal to clear all transmitted and acknowledged records stored in its memory buffer.
+        /// Directs the terminal to clear transmitted and acknowledged records stored in its memory buffer.
         /// </summary>
         public void ClearBuffer()
         {
@@ -434,13 +434,59 @@ namespace Syndll2
             ValidateAcknowledgment(response);
         }
 
+        // The following is commented because it appears not to function correctly.  (The date is ignored).
+
+        ///// <summary>
+        ///// Directs the terminal to clear transmitted and acknowledged records stored in its memory buffer.
+        ///// </summary>
+        ///// <param name="date">The date to clear from, ignoring any time component.</param>
+        //public void ClearBuffer(DateTime date)
+        //{
+        //    var response = _client.SendAndReceive(RequestCommand.ClearByDate, date.ToString("ddMMyy"), ACK);
+        //    ValidateAcknowledgment(response);
+        //}
+
 #if NET_45
         /// <summary>
-        /// Returns an awaitable task that directs the terminal to clear all transmitted and acknowledged records stored in its memory buffer.
+        /// Returns an awaitable task that directs the terminal to clear transmitted and acknowledged records stored in its memory buffer.
         /// </summary>
         public async Task ClearBufferAsync()
         {
             var response = await _client.SendAndReceiveAsync(RequestCommand.ClearBuffer, null, ACK);
+            ValidateAcknowledgment(response);
+        }
+
+        // The following is commented because it appears not to function correctly.  (The date is ignored).
+
+        ///// <summary>
+        ///// Returns an awaitable task that directs the terminal to clear transmitted and acknowledged records stored in its memory buffer.
+        ///// </summary>
+        ///// <param name="date">The date to clear from, ignoring any time component.</param>
+        //public async Task ClearBufferAsync(DateTime date)
+        //{
+        //    var response = await _client.SendAndReceiveAsync(RequestCommand.ClearByDate, date.ToString("ddMMyy"), ACK);
+        //    ValidateAcknowledgment(response);
+        //}
+#endif
+        #endregion
+
+        #region ResetBuffer
+        /// <summary>
+        /// Directs the terminal to reset all transmitted and acknowledged records stored in its memory buffer to be unsent records.
+        /// </summary>
+        public void ResetBuffer()
+        {
+            var response = _client.SendAndReceive(RequestCommand.ResetBuffer, null, ACK);
+            ValidateAcknowledgment(response);
+        }
+
+#if NET_45
+        /// <summary>
+        /// Returns an awaitable task that directs the terminal to reset all transmitted and acknowledged records stored in its memory buffer to be unsent records.
+        /// </summary>
+        public async Task ResetBufferAsync()
+        {
+            var response = await _client.SendAndReceiveAsync(RequestCommand.ResetBuffer, null, ACK);
             ValidateAcknowledgment(response);
         }
 #endif
@@ -452,7 +498,7 @@ namespace Syndll2
         /// </summary>
         public void ResetLine()
         {
-            _client.SendAndReceive(RequestCommand.ResetLine);
+            _client.SendOnly(RequestCommand.ResetLine);
             // no ack
         }
 
@@ -462,7 +508,7 @@ namespace Syndll2
         /// </summary>
         public async Task ResetLineAsync()
         {
-            await _client.SendAndReceiveAsync(RequestCommand.ResetLine);
+            await _client.SendOnlyAsync(RequestCommand.ResetLine);
             // no ack
         }
 #endif
