@@ -138,12 +138,12 @@ namespace Syndll2
         }
 #endif
 
-        public static NetworkConnection Listen(Action<Stream> action)
+        public static NetworkConnection Listen(Action<Stream, Socket> action)
         {
             return Listen(3734, action);
         }
 
-        public static NetworkConnection Listen(int port, Action<Stream> action)
+        public static NetworkConnection Listen(int port, Action<Stream, Socket> action)
         {
             var listener = new NetworkConnection();
 
@@ -172,7 +172,7 @@ namespace Syndll2
                         {
                             using (var stream = new NetworkStream(socket))
                             {
-                                action(stream);
+                                action(stream, socket);
                             }
                         }
                         finally

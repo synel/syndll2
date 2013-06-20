@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 
 namespace Syndll2
@@ -37,7 +38,7 @@ namespace Syndll2
 
         public static SynelServer Listen(int port, Action<PushNotification> action)
         {
-            var connection = NetworkConnection.Listen(port, stream =>
+            var connection = NetworkConnection.Listen(port, (stream, socket) =>
                 {
                     var history = new List<string>();
 
@@ -52,7 +53,7 @@ namespace Syndll2
                                 Util.Log(string.Format("Received: {0}", args.RawResponse));
                                 if (args.Response != null)
                                 {
-                                    var notification = new PushNotification(stream, args.Response);
+                                    var notification = new PushNotification(stream, args.Response, (IPEndPoint) socket.RemoteEndPoint);
                                     action(notification);
                                 }
                             }
