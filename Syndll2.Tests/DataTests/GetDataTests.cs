@@ -13,9 +13,10 @@ namespace Syndll2.Tests.DataTests
         {
             using (var client = TestSettings.Connect())
             {
+                client.Terminal.ResetBuffer();
                 var data = client.Terminal.GetDataAndAcknowledge();
                 if (data == null)
-                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be a transaction data on the terminal.");
+                    Assert.Inconclusive("There needs to be a transaction on the terminal to run this test.");
             }
         }
 
@@ -24,9 +25,10 @@ namespace Syndll2.Tests.DataTests
         {
             using (var client = await TestSettings.ConnectAsync())
             {
+                await client.Terminal.ResetBufferAsync();
                 var data = await client.Terminal.GetDataAndAcknowledgeAsync();
                 if (data == null)
-                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be a transaction data on the terminal.");
+                    Assert.Inconclusive("There needs to be a transaction on the terminal to run this test.");
             }
         }
 
@@ -35,9 +37,10 @@ namespace Syndll2.Tests.DataTests
         {
             using (var client = TestSettings.Connect())
             {
+                client.Terminal.ResetBuffer();
                 var data = client.Terminal.GetFullDataBlockAndAcknowledge();
                 if (data == null)
-                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be two or more transactions on the terminal.");
+                    Assert.Inconclusive("There needs to be two or more transactions on the terminal to run this test.");
             }
         }
 
@@ -46,9 +49,10 @@ namespace Syndll2.Tests.DataTests
         {
             using (var client = await TestSettings.ConnectAsync())
             {
+                await client.Terminal.ResetBufferAsync();
                 var data = await client.Terminal.GetFullDataBlockAndAcknowledgeAsync();
                 if (data == null)
-                    Assert.Inconclusive("This test is meant to be run individually, and there needs to be two or more transactions on the terminal.");
+                    Assert.Inconclusive("There needs to be two or more transactions on the terminal to run this test.");
             }
         }
 
@@ -59,13 +63,15 @@ namespace Syndll2.Tests.DataTests
 
             using (var client = TestSettings.Connect())
             {
+                client.Terminal.ResetBuffer();
+
                 string item;
                 while ((item = client.Terminal.GetDataAndAcknowledge()) != null)
                     data.Add(item);
             }
 
             if (data.Count == 0)
-                Assert.Inconclusive("This test is meant to be run individually, and there needs to be some transaction data on the terminal.");
+                Assert.Inconclusive("There needs to be some transaction data on the terminal to run this test.");
             
             Debug.WriteLine("");
             Debug.WriteLine("DATA RETRIEVED");
@@ -81,13 +87,15 @@ namespace Syndll2.Tests.DataTests
 
             using (var client = TestSettings.Connect())
             {
+                await client.Terminal.ResetBufferAsync();
+
                 string item;
                 while ((item = await client.Terminal.GetDataAndAcknowledgeAsync()) != null)
                     data.Add(item);
             }
 
             if (data.Count == 0)
-                Assert.Inconclusive("This test is meant to be run individually, and there needs to be some transaction data on the terminal.");
+                Assert.Inconclusive("There needs to be some transaction data on the terminal to run this test.");
 
             Debug.WriteLine("");
             Debug.WriteLine("DATA RETRIEVED");

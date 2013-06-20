@@ -9,11 +9,10 @@ namespace Syndll2.Tests.DataTests
         [TestInitialize]
         public void Initialize()
         {
-            // start these tests with clean data
+            // start these tests with all data acknowledged
             using (var client = TestSettings.Connect())
             {
-                client.Terminal.GetData();
-                client.Terminal.ClearBuffer();
+                while (client.Terminal.GetDataAndAcknowledge() != null) { }
             }
         }
 

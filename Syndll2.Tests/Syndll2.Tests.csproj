@@ -65,7 +65,6 @@
     <Compile Include="BasicTests\ByteFormatTests.cs" />
     <Compile Include="BasicTests\ServerTests.cs" />
     <Compile Include="DataTests\ClearBufferTests.cs" />
-    <Compile Include="DataTests\AcknowledgeLastRecordTests.cs" />
     <Compile Include="DataTests\GetDataTests.cs" />
     <Compile Include="FingerprintTests\ListFingerprintTests.cs" />
     <Compile Include="FingerprintTests\PutFingerprintTests.cs" />
