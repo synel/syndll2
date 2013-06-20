@@ -400,7 +400,34 @@ namespace Syndll2
         }
 #endif
 
+        /// <summary>
+        /// Communicates with the terminal by sending a request without waiting for a response.
+        /// </summary>
+        /// <param name="requestCommand">The request command to send.</param>
+        /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        internal void SendOnly(RequestCommand requestCommand, string dataToSend = null)
+        {
+            if (!Connected)
+                throw new InvalidOperationException("Not connected!");
+
+            var rawRequest = CreateCommand(requestCommand, dataToSend);
+            Send(rawRequest);
+        }
+
 #if NET_45
+        /// <summary>
+        /// Returns an awaitable task that communicates with the terminal by sending a request without waiting for a response.
+        /// </summary>
+        /// <param name="requestCommand">The request command to send.</param>
+        /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        internal async Task SendOnlyAsync(RequestCommand requestCommand, string dataToSend = null)
+        {
+            if (!Connected)
+                throw new InvalidOperationException("Not connected!");
+
+            var rawRequest = CreateCommand(requestCommand, dataToSend);
+            await SendAsync(rawRequest);
+        }
 #endif
 
         private void Send(string command)
