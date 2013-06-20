@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -415,30 +414,26 @@ namespace Syndll2
 #endif
         #endregion
 
-        #region EraseAllMemoryFromTerminal
+        #region FixMemCrash
         /// <summary>
-        /// ERASES ALL MEMORY FROM THE TERMINAL!
+        /// Erases all terminal memory, returning a terminal in the "Mem Crash" state to "No Prog".
         /// </summary>
-        public void EraseAllMemoryFromTerminal()
+        public void FixMemCrash()
         {
-            var response = _client.SendAndReceive(RequestCommand.SystemCommands, "F", ACK);
-            TerminalOperations.ValidateAcknowledgment(response);
+            _client.SendOnly(RequestCommand.SystemCommands, "F");
+            // no ack
         }
 
 #if NET_45
         /// <summary>
-        /// Returns an awaitable task that ERASES ALL MEMORY FROM THE TERMINAL!
+        /// Returns an awaitable task that erases all terminal memory, returning a terminal in the "Mem Crash" state to "No Prog".
         /// </summary>
-        public async Task EraseAllMemoryFromTerminalAsync()
+        public async Task FixMemCrashAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.SystemCommands, "F", ACK);
-            TerminalOperations.ValidateAcknowledgment(response);
+            await _client.SendOnlyAsync(RequestCommand.SystemCommands, "F");
+            // no ack
         }
 #endif
         #endregion
-
-        // ReSharper disable InconsistentNaming
-        private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
-        // ReSharper restore InconsistentNaming
     }
 }
