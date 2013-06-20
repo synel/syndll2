@@ -89,12 +89,13 @@ This code is safe for production, but should still be considered *unstable*.
  - Setting the terminal's clock
  - Programming operations, such as uploading a terminal program.
  - Sending and retrieving fingerprint templates.
+ - Server to recieve data when Polling is enabled.
  - Miscellaneous other functions.
  
 **Not yet implemented**
  - Serial or modem connection.
  - Firmware Updating
- - Online Mode (polling)
+ - Online Mode (Host Query)
  
 ### Solution Structure
 
