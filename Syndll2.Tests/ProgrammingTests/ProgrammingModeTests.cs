@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
 
@@ -12,18 +13,27 @@ namespace Syndll2.Tests.ProgrammingTests
         {
             using (var client = TestSettings.Connect())
             {
+                ProgrammingStatus status1, status2;
                 try
                 {
-                    var status1 = client.Terminal.Halt();
-                    var status2 = client.Terminal.Run();
-
-                    Assert.AreEqual(ProgrammingOperationStatus.InProgrammingMode, status1.OperationStatus);
-                    Assert.AreEqual(ProgrammingOperationStatus.InRunMode, status2.OperationStatus);
+                    status1 = client.Terminal.Halt();
+                    status2 = client.Terminal.Run();
                 }
                 catch
                 {
                     // always go back to run mode if possible
                     client.Terminal.Run();
+                    throw;
+                }
+
+                if (status1.OperationStatus == ProgrammingOperationStatus.Unknown || status2.OperationStatus == ProgrammingOperationStatus.Unknown)
+                {
+                    Assert.Inconclusive("Could not verify programming status mode.");
+                }
+                else
+                {
+                    Assert.AreEqual(ProgrammingOperationStatus.InProgrammingMode, status1.OperationStatus);
+                    Assert.AreEqual(ProgrammingOperationStatus.InRunMode, status2.OperationStatus);
                 }
             }
         }
@@ -33,18 +43,27 @@ namespace Syndll2.Tests.ProgrammingTests
         {
             using (var client = await TestSettings.ConnectAsync())
             {
+                ProgrammingStatus status1, status2;
                 try
                 {
-                    var status1 = await client.Terminal.HaltAsync();
-                    var status2 = await client.Terminal.RunAsync();
-
-                    Assert.AreEqual(ProgrammingOperationStatus.InProgrammingMode, status1.OperationStatus);
-                    Assert.AreEqual(ProgrammingOperationStatus.InRunMode, status2.OperationStatus);
+                    status1 = await client.Terminal.HaltAsync();
+                    status2 = await client.Terminal.RunAsync();
                 }
                 catch
                 {
                     // always go back to run mode if possible
                     client.Terminal.Run();
+                    throw;
+                }
+
+                if (status1.OperationStatus == ProgrammingOperationStatus.Unknown || status2.OperationStatus == ProgrammingOperationStatus.Unknown)
+                {
+                    Assert.Inconclusive("Could not verify programming status mode.");
+                }
+                else
+                {
+                    Assert.AreEqual(ProgrammingOperationStatus.InProgrammingMode, status1.OperationStatus);
+                    Assert.AreEqual(ProgrammingOperationStatus.InRunMode, status2.OperationStatus);
                 }
             }
         }

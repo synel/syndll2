@@ -14,7 +14,7 @@ namespace Syndll2.Tests.ProgrammingTests
             using (var p = client.Terminal.Programming())
             {
                 p.ProgressChanged += Programming_ProgressChanged;
-                p.UploadTableFromFile(@"TestData\msg800.rdy");
+                p.UploadTableFromFile(@"TestData\test777.rdy");
             }
         }
 
@@ -25,7 +25,7 @@ namespace Syndll2.Tests.ProgrammingTests
             using (var p = client.Terminal.Programming())
             {
                 p.ProgressChanged += Programming_ProgressChanged;
-                await p.UploadTableFromFileAsync(@"TestData\msg800.rdy");
+                await p.UploadTableFromFileAsync(@"TestData\test777.rdy");
             }
         }
 

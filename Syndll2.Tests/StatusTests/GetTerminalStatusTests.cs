@@ -55,6 +55,7 @@ namespace Syndll2.Tests.StatusTests
             Debug.WriteLine("Polling Interval:    {0} seconds", status.PollingInterval.TotalSeconds);
             Debug.WriteLine("Transport Type:      {0}", new object[] { status.TransportType.ToString().ToUpperInvariant() });
             Debug.WriteLine("FPU Mode:            {0}", status.FingerprintUnitMode);
+            Debug.WriteLine("User Defined Field:  {0}", new object[] {status.UserDefinedField});
             Debug.WriteLine("");
         }
     }
