@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
 
@@ -22,8 +23,15 @@ namespace Syndll2.Tests.ProgrammingTests
         {
             using (var client = TestSettings.Connect())
             {
-                var data = client.Terminal.GetSingleRecord('y', 777, "001");
-                AssertValidData(data);
+                try
+                {
+                    var data = client.Terminal.GetSingleRecord('y', 777, "001");
+                    AssertValidData(data);
+                }
+                catch (TimeoutException)
+                {
+                    Assert.Inconclusive("This terminal does not support single record commands.");
+                }
             }
         }
 
@@ -32,8 +40,15 @@ namespace Syndll2.Tests.ProgrammingTests
         {
             using (var client = await TestSettings.ConnectAsync())
             {
-                var data = await client.Terminal.GetSingleRecordAsync('y', 777, "001");
-                AssertValidData(data);
+                try
+                {
+                    var data = await client.Terminal.GetSingleRecordAsync('y', 777, "001");
+                    AssertValidData(data);
+                }
+                catch (TimeoutException)
+                {
+                    Assert.Inconclusive("This terminal does not support single record commands.");
+                }
             }
         }
 
@@ -52,8 +67,15 @@ namespace Syndll2.Tests.ProgrammingTests
         {
             using (var client = TestSettings.Connect())
             {
-                var data = client.Terminal.GetSingleRecord('y', 777, "002");
-                Assert.AreEqual(SearchResult.KeyNotFound, data.ResultCode);
+                try
+                {
+                    var data = client.Terminal.GetSingleRecord('y', 777, "002");
+                    Assert.AreEqual(SearchResult.KeyNotFound, data.ResultCode);
+                }
+                catch (TimeoutException)
+                {
+                    Assert.Inconclusive("This terminal does not support single record commands.");
+                }
             }
         }
 
@@ -62,8 +84,15 @@ namespace Syndll2.Tests.ProgrammingTests
         {
             using (var client = TestSettings.Connect())
             {
-                var data = client.Terminal.GetSingleRecord('y', 778, "001");
-                Assert.AreEqual(SearchResult.TableNotFound, data.ResultCode);
+                try
+                {
+                    var data = client.Terminal.GetSingleRecord('y', 778, "001");
+                    Assert.AreEqual(SearchResult.TableNotFound, data.ResultCode);
+                }
+                catch (TimeoutException)
+                {
+                    Assert.Inconclusive("This terminal does not support single record commands.");
+                }
             }
         }
     }
