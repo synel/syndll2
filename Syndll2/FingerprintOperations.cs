@@ -25,7 +25,7 @@ namespace Syndll2
         /// </summary>
         public FingerprintUnitStatus GetUnitStatus()
         {
-            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "M0", "vM0");
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "M0", 3, "vM0");
             return GetFingerprintUnitStatusResult(response);
         }
 
@@ -35,7 +35,7 @@ namespace Syndll2
         /// </summary>
         public async Task<FingerprintUnitStatus> GetUnitStatusAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0", "vM0");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0", 3, "vM0");
             return GetFingerprintUnitStatusResult(response);
         }
 #endif
@@ -306,7 +306,7 @@ namespace Syndll2
         /// </summary>
         public void DeleteAllTemplates()
         {
-            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "G0@@@@@@@@@@", ACK);
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "G0@@@@@@@@@@", 3, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 
@@ -316,7 +316,7 @@ namespace Syndll2
         /// </summary>
         public async Task DeleteAllTemplatesAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G0@@@@@@@@@@", ACK);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G0@@@@@@@@@@", 3, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 #endif
@@ -464,7 +464,7 @@ namespace Syndll2
             }
 
             var data = string.Format("H0E{0}", val);
-            _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
+            _client.SendAndReceive(RequestCommand.Fingerprint, data, 3, ACK);
         }
 
 
@@ -492,7 +492,7 @@ namespace Syndll2
             }
 
             var data = string.Format("H0E{0}", val);
-            await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
+            await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, 3, ACK);
         }
 #endif
         #endregion
