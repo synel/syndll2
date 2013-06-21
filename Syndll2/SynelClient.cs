@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -284,7 +283,7 @@ namespace Syndll2
                         Send(rawRequest);
 
                         // Wait for the response or timeout
-                        if (signal.Wait(3000))
+                        if (signal.Wait(5000))
                             _receiver.MessageReceived -= handler;
                         signal.Release();
                         
@@ -401,7 +400,7 @@ namespace Syndll2
                         await SendAsync(rawRequest);
 
                         // Wait for the response or timeout
-                        if (await signal.WaitAsync(3000))
+                        if (await signal.WaitAsync(5000))
                             _receiver.MessageReceived -= handler;
                         signal.Release();
                         

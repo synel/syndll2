@@ -3,6 +3,11 @@
     public enum ProgrammingOperationStatus
     {
         /// <summary>
+        /// The status could not be determined.
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
         /// A table with the same ID already exists in the terminal's memory.
         /// </summary>
         TableAlreadyExists = 'E',

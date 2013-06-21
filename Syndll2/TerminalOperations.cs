@@ -520,7 +520,7 @@ namespace Syndll2
         /// </summary>
         public ProgrammingStatus Halt()
         {
-            var response = _client.SendAndReceive(RequestCommand.Halt, null, ACK);
+            var response = _client.SendAndReceive(RequestCommand.Halt, null, 3, ACK);
             ValidateAcknowledgment(response);
 
             // A delay here is required, or some operations will fail.
@@ -528,7 +528,7 @@ namespace Syndll2
 
             // programming status info might not be present
             if (string.IsNullOrEmpty(response.Data))
-                return null;
+                return new ProgrammingStatus();
 
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -539,7 +539,7 @@ namespace Syndll2
         /// </summary>
         public async Task<ProgrammingStatus> HaltAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Halt, null, ACK);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Halt, null, 3, ACK);
             ValidateAcknowledgment(response);
 
             // A delay here is required, or some operations will fail.
@@ -547,7 +547,7 @@ namespace Syndll2
 
             // programming status info might not be present
             if (string.IsNullOrEmpty(response.Data))
-                return null;
+                return new ProgrammingStatus();
 
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -560,12 +560,12 @@ namespace Syndll2
         /// </summary>
         public ProgrammingStatus Run()
         {
-            var response = _client.SendAndReceive(RequestCommand.Run, null, ACK);
+            var response = _client.SendAndReceive(RequestCommand.Run, null, 3, ACK);
             ValidateAcknowledgment(response);
 
             // programming status info might not be present
             if (string.IsNullOrEmpty(response.Data))
-                return null;
+                return new ProgrammingStatus();
 
             return ProgrammingStatus.Parse(response.Data);
         }
@@ -576,12 +576,12 @@ namespace Syndll2
         /// </summary>
         public async Task<ProgrammingStatus> RunAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Run, null, ACK);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Run, null, 3, ACK);
             ValidateAcknowledgment(response);
 
             // programming status info might not be present
             if (string.IsNullOrEmpty(response.Data))
-                return null;
+                return new ProgrammingStatus();
 
             return ProgrammingStatus.Parse(response.Data);
         }

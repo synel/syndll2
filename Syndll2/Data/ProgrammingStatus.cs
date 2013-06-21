@@ -112,5 +112,10 @@ namespace Syndll2.Data
             _currentBlockNumber = SynelNumericFormat.Convert(data.Substring(10, 2));
             _debugInfo = data.Substring(12, 3);
         }
-    }
+
+        internal ProgrammingStatus()
+        {
+            _operationStatus = ProgrammingOperationStatus.Unknown;
+        }
+    }   
 }
