@@ -66,7 +66,8 @@ namespace Syndll2
         /// </summary>
         /// <param name="path">The path to the RDY file.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public void UploadTableFromFile(string path, bool replace = true)
+        /// <param name="force">True to upload the file even if it fails validation. (False by default.)</param>
+        public void UploadTableFromFile(string path, bool replace = true, bool force = false)
         {
             if (!string.Equals(Path.GetExtension(path), ".rdy", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Pass the full or relative path to a .RDY file.");
@@ -81,7 +82,7 @@ namespace Syndll2
             Util.Log("Reading " + fileName);
             using (var stream = File.OpenRead(path))
             {
-                rdy = RdyFile.Read(stream);
+                rdy = RdyFile.Read(stream, force);
                 rdy.Filename = fileName;
             }
 
@@ -95,14 +96,14 @@ namespace Syndll2
                     var p = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar + record.Data;
 
                     // recurse to upload each file
-                    UploadTableFromFile(p, replace);
+                    UploadTableFromFile(p, replace, force);
                 }
             }
             else
             {
                 // Just upload the single RDY
                 Util.Log("Uploading " + fileName);
-                UploadTableFromRdy(rdy, replace);
+                UploadTableFromRdy(rdy, replace, force);
             }
         }
 
@@ -112,7 +113,8 @@ namespace Syndll2
         /// </summary>
         /// <param name="path">The path to the RDY file.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public async Task UploadTableFromFileAsync(string path, bool replace = true)
+        /// <param name="force">True to upload the file even if it fails validation. (False by default.)</param>
+        public async Task UploadTableFromFileAsync(string path, bool replace = true, bool force = false)
         {
             if (!string.Equals(Path.GetExtension(path), ".rdy", StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Pass the full or relative path to a .RDY file.");
@@ -127,7 +129,7 @@ namespace Syndll2
             Util.Log("Reading " + fileName);
             using (var stream = File.OpenRead(path))
             {
-                rdy = await RdyFile.ReadAsync(stream);
+                rdy = await RdyFile.ReadAsync(stream, force);
                 rdy.Filename = fileName;
             }
 
@@ -141,14 +143,14 @@ namespace Syndll2
                     var p = Path.GetDirectoryName(path) + Path.DirectorySeparatorChar + record.Data;
 
                     // recurse to upload each file
-                    await UploadTableFromFileAsync(p, replace);
+                    await UploadTableFromFileAsync(p, replace, force);
                 }
             }
             else
             {
                 // Just upload the single RDY
                 Util.Log("Uploading " + fileName);
-                await UploadTableFromRdyAsync(rdy, replace);
+                await UploadTableFromRdyAsync(rdy, replace, force);
             }
         }
 #endif
@@ -158,10 +160,11 @@ namespace Syndll2
         /// </summary>
         /// <param name="stream">The stream containing the RDY file content.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public void UploadTableFromStream(Stream stream, bool replace = true)
+        /// <param name="force">True to upload the file even if it fails validation. (False by default.)</param>
+        public void UploadTableFromStream(Stream stream, bool replace = true, bool force = false)
         {
-            var rdy = RdyFile.Read(stream);
-            UploadTableFromRdy(rdy, replace);
+            var rdy = RdyFile.Read(stream, force);
+            UploadTableFromRdy(rdy, replace, force);
         }
 
 #if NET_45
@@ -170,10 +173,11 @@ namespace Syndll2
         /// </summary>
         /// <param name="stream">The stream containing the RDY file content.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public async Task UploadTableFromStreamAsync(Stream stream, bool replace = true)
+        /// <param name="force">True to upload the file even if it fails validation. (False by default.)</param>
+        public async Task UploadTableFromStreamAsync(Stream stream, bool replace = true, bool force = false)
         {
-            var rdy = RdyFile.Read(stream);
-            await UploadTableFromRdyAsync(rdy, replace);
+            var rdy = RdyFile.Read(stream, force);
+            await UploadTableFromRdyAsync(rdy, replace, force);
         }
 #endif
 
@@ -182,7 +186,8 @@ namespace Syndll2
         /// </summary>
         /// <param name="rdy">The RDY file object.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public void UploadTableFromRdy(RdyFile rdy, bool replace = true)
+        /// <param name="force">True to upload the file even if it fails validation. (False by default.)</param>
+        public void UploadTableFromRdy(RdyFile rdy, bool replace = true, bool force = false)
         {
             // make sure we're not uploading a directory file
             if (rdy.IsDirectoryFile)
@@ -232,7 +237,8 @@ namespace Syndll2
         /// </summary>
         /// <param name="rdy">The RDY file object.</param>
         /// <param name="replace">True to replace any existing table.  False to throw an exception if the table exists already. (True by default.)</param>
-        public async Task UploadTableFromRdyAsync(RdyFile rdy, bool replace = true)
+        /// <param name="force">True to upload the file even if it fails validation. (False by default.)</param>
+        public async Task UploadTableFromRdyAsync(RdyFile rdy, bool replace = true, bool force = false)
         {
             // make sure we're not uploading a directory file
             if (rdy.IsDirectoryFile)

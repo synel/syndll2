@@ -61,7 +61,7 @@ namespace Syndll2.Data
         /// <summary>
         /// Reads an RDY file from an input stream.
         /// </summary>
-        internal static RdyFile Read(Stream stream)
+        internal static RdyFile Read(Stream stream, bool force = false)
         {
             if (stream == null)
                 throw new ArgumentNullException("stream", "The input stream cannot be null.");
@@ -75,7 +75,7 @@ namespace Syndll2.Data
             {
                 // Read and parse the header
                 var header = rdy.ReadHeader(reader);
-                rdy.Header = RdyHeader.Parse(header);
+                rdy.Header = RdyHeader.Parse(header, force);
 
                 // See if we are working with a directory file
                 if (rdy.Header.TableType == 'z')
@@ -91,7 +91,7 @@ namespace Syndll2.Data
                 else
                 {
                     // Read and load the records in the body
-                    rdy.ReadBody(reader);
+                    rdy.ReadBody(reader, force);
                 }
             }
 
@@ -102,7 +102,7 @@ namespace Syndll2.Data
         /// <summary>
         /// Returns an awaitable task that reads an RDY file from an input stream.
         /// </summary>
-        internal static async Task<RdyFile> ReadAsync(Stream stream)
+        internal static async Task<RdyFile> ReadAsync(Stream stream, bool force = false)
         {
             if (stream == null)
                 throw new ArgumentNullException("stream", "The input stream cannot be null.");
@@ -116,7 +116,7 @@ namespace Syndll2.Data
             {
                 // Read and parse the header
                 var header = await rdy.ReadHeaderAsync(reader);
-                rdy.Header = RdyHeader.Parse(header);
+                rdy.Header = RdyHeader.Parse(header, force);
 
                 // See if we are working with a directory file
                 if (rdy.Header.TableType == 'z')
@@ -132,7 +132,7 @@ namespace Syndll2.Data
                 else
                 {
                     // Read and load the records in the body
-                    await rdy.ReadBodyAsync(reader);
+                    await rdy.ReadBodyAsync(reader, force);
                 }
             }
 
@@ -140,7 +140,7 @@ namespace Syndll2.Data
         }
 #endif
 
-        private void ReadBody(StreamReader reader)
+        private void ReadBody(StreamReader reader, bool force)
         {
             // Initialize a new list of records
             Records = new List<RdyRecord>(Header.RecordCount);
@@ -160,7 +160,7 @@ namespace Syndll2.Data
                     // load the record data
                     var record = Header.KeyLength == 0
                                      ? new RdyRecord(rawValue)
-                                     : new KeyedRdyRecord(rawValue, Header.KeyLength, Header.KeyOffset);
+                                     : new KeyedRdyRecord(rawValue, Header.KeyLength, Header.KeyOffset, force);
 
                     // add it to the results
                     Records.Add(record);
@@ -168,13 +168,13 @@ namespace Syndll2.Data
             }
 
             // Make sure the record count matched the value in the header
-            if (Records.Count != Header.RecordCount)
+            if (Records.Count != Header.RecordCount && !force)
                 throw new InvalidDataException(string.Format("The RDY header reported {0} records, but {1} records were in the RDY file.", Header.RecordCount,
                                                              Records.Count));
         }
 
 #if NET_45
-        private async Task ReadBodyAsync(StreamReader reader)
+        private async Task ReadBodyAsync(StreamReader reader, bool force)
         {
             // Initialize a new list of records
             Records = new List<RdyRecord>(Header.RecordCount);
@@ -194,7 +194,7 @@ namespace Syndll2.Data
                     // load the record data
                     var record = Header.KeyLength == 0
                                      ? new RdyRecord(rawValue)
-                                     : new KeyedRdyRecord(rawValue, Header.KeyLength, Header.KeyOffset);
+                                     : new KeyedRdyRecord(rawValue, Header.KeyLength, Header.KeyOffset, force);
 
                     // add it to the results
                     Records.Add(record);
@@ -202,7 +202,7 @@ namespace Syndll2.Data
             }
 
             // Make sure the record count matched the value in the header
-            if (Records.Count != Header.RecordCount)
+            if (Records.Count != Header.RecordCount && !force)
                 throw new InvalidDataException(string.Format("The RDY header reported {0} records, but {1} records were in the RDY file.", Header.RecordCount,
                                                              Records.Count));
         }
@@ -256,8 +256,8 @@ namespace Syndll2.Data
                 var i = b.IndexOf(terminator, StringComparison.Ordinal);
                 if (i == -1) continue;
 
-                // cut the data before the terminator and write it to a new record.
-                var s = _buffer.Cut(0, i);
+                // cut the data before the terminator and write it to a new record, ignoring any trailing underscores or spaces
+                var s = _buffer.Cut(0, i).TrimEnd('_', ' ');
                 Records.Add(new RdyRecord(s));
 
                 // remove the terminator from the buffer.
@@ -348,24 +348,24 @@ namespace Syndll2.Data
             {
             }
 
-            internal static RdyHeader Parse(string data)
+            internal static RdyHeader Parse(string data, bool force)
             {
                 var header = new RdyHeader();
 
                 if (data == null)
                     throw new ArgumentNullException("data");
 
-                if (data.Length != HeaderSize)
+                if (data.Length != HeaderSize && !force)
                     throw new ArgumentException(string.Format("The header must consist of exactly {0} characters.", HeaderSize));
 
                 header.TableType = data[0];
 
                 int i;
-                if (!int.TryParse(data.Substring(1, 3), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+                if (!int.TryParse(data.Substring(1, 3), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the table ID from the RDY header.");
                 header.TableId = i;
 
-                if (!int.TryParse(data.Substring(4, 5), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+                if (!int.TryParse(data.Substring(4, 5), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the total number of characters from the RDY header.");
                 header.TotalCharacters = i;
 
@@ -377,12 +377,12 @@ namespace Syndll2.Data
 
                 header.TableVersion = data[9];
 
-                if (!int.TryParse(data.Substring(10, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+                if (!int.TryParse(data.Substring(10, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the header size from the RDY header.");
-                if (i != HeaderSize)
+                if (i != HeaderSize && !force)
                     throw new InvalidDataException(string.Format("The header size in the RDY file should state {0} but it was {1} instead.", HeaderSize, i));
-                
-                if (!int.TryParse(data.Substring(12, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+
+                if (!int.TryParse(data.Substring(12, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the record size from the RDY header.");
                 header.RecordSize = i;
 
@@ -392,22 +392,22 @@ namespace Syndll2.Data
 
                 header.RecordCount = SynelNumericFormat.Convert(data.Substring(14, 3));
 
-                if (!int.TryParse(data.Substring(17, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+                if (!int.TryParse(data.Substring(17, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the key length from the RDY header.");
                 header.KeyLength = i;
 
-                if (!int.TryParse(data.Substring(19, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+                if (!int.TryParse(data.Substring(19, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the key offset from the RDY header.");
                 header.KeyOffset = i;
 
-                if (!int.TryParse(data.Substring(21, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i))
+                if (!int.TryParse(data.Substring(21, 2), NumberStyles.None, CultureInfo.InvariantCulture, out i) && !force)
                     throw new InvalidDataException("Couldn't parse the sorted/packed flags from the RDY header.");
                 header.Sorted = i == 2 || i == 3;
                 header.Packed = i == 1 || i == 3;
 
                 // Make sure the character count makes sense
                 var expectedChars = HeaderSize + header.RecordCount * header.RecordSize;
-                if (header.TotalCharacters != expectedChars)
+                if (header.TotalCharacters != expectedChars && !force)
                     throw new InvalidDataException(string.Format("The total character count doesn't match.  It was reported as {0}, but calculated as {1}.",
                                                                  header.TotalCharacters, expectedChars));
 
@@ -472,7 +472,7 @@ namespace Syndll2.Data
                 get { return _data.Substring(_keyOffset + _keyLength); }
             }
 
-            public KeyedRdyRecord(string key, string value)
+            public KeyedRdyRecord(string key, string value, bool force)
                 : base(key + value)
             {
                 if (key == null)
@@ -481,17 +481,17 @@ namespace Syndll2.Data
                 if (value == null)
                     throw new ArgumentNullException("value");
 
-                if (key.Length == 0)
+                if (key.Length == 0 && !force)
                     throw new ArgumentException("The key cannot be empty.");
             }
 
-            public KeyedRdyRecord(string data, int keyLength, int keyOffset)
+            public KeyedRdyRecord(string data, int keyLength, int keyOffset, bool force)
                 : base(data)
             {
-                if (keyOffset + keyLength > data.Length)
+                if (keyOffset + keyLength > data.Length && !force)
                     throw new ArgumentException("The data must be at least the size of the key.");
 
-                if (keyLength == 0)
+                if (keyLength == 0 && !force)
                     throw new ArgumentException("The key cannot be empty.");
 
                 _keyLength = keyLength;
