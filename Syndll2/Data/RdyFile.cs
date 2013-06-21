@@ -227,8 +227,8 @@ namespace Syndll2.Data
                 var i = b.IndexOf(terminator, StringComparison.Ordinal);
                 if (i == -1) continue;
 
-                // cut the data before the terminator and write it to a new record.
-                var s = _buffer.Cut(0, i);
+                // cut the data before the terminator and write it to a new record, ignoring any trailing underscores or spaces
+                var s = _buffer.Cut(0, i).TrimEnd('_', ' ');
                 Records.Add(new RdyRecord(s));
 
                 // remove the terminator from the buffer.
