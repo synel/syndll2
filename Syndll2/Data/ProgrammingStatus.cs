@@ -87,12 +87,11 @@ namespace Syndll2.Data
             if (data == null)
                 throw new ArgumentNullException("data");
 
-            const int expectedLength = 15;
-            if (data.Length != expectedLength)
+            if (data.Length != 1 && data.Length != 15)
                 throw new ArgumentException(
                     string.Format(
-                        "Program debug status data should be exactly {0} characters, and you passed {1} characters.  " +
-                        "Do not pass the command, terminal id, or CRC here.", expectedLength, data.Length),
+                        "Program debug status data should be either {0} or {1} characters, and you passed {2} characters.  " +
+                        "Do not pass the command, terminal id, or CRC here.", 1, 15, data.Length),
                     "data");
 
             return new ProgrammingStatus(data);
@@ -101,6 +100,10 @@ namespace Syndll2.Data
         private ProgrammingStatus(string data)
         {
             _operationStatus = (ProgrammingOperationStatus) data[0];
+
+            if (data.Length == 1)
+                return;
+
             _operationType = data[1];
             _fileName = data.Substring(2, 4);
             _terminalMode = data[6];
