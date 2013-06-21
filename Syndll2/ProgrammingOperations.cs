@@ -29,7 +29,15 @@ namespace Syndll2
         {
             _fingerprintOperations = new Lazy<FingerprintOperations>(() => new FingerprintOperations(client));
             _client = client;
-            _client.Terminal.Halt();
+            try
+            {
+                _client.Terminal.Halt();
+            }
+            catch
+            {
+                _client.Terminal.Run();
+                throw;
+            }
         }
 
         public void Dispose()
