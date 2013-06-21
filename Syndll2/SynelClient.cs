@@ -217,6 +217,19 @@ namespace Syndll2
         /// <returns>A validated <see cref="Response"/> object.</returns>
         internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null, params string[] validResponses)
         {
+            return SendAndReceive(requestCommand, dataToSend, 1, validResponses);
+        }
+
+        /// <summary>
+        /// Communicates with the terminal by sending a request and receiving a response.
+        /// </summary>
+        /// <param name="requestCommand">The request command to send.</param>
+        /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        /// <param name="attempts">Number of times to attempt the command until receiving a response.</param>
+        /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
+        /// <returns>A validated <see cref="Response"/> object.</returns>
+        internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, params string[] validResponses)
+        {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
 
@@ -271,10 +284,10 @@ namespace Syndll2
                         Send(rawRequest);
 
                         // Wait for the response or timeout
-                        if (signal.Wait(5000))
-                            signal.Release();
-                        _receiver.MessageReceived -= handler;
-
+                        if (signal.Wait(3000))
+                            _receiver.MessageReceived -= handler;
+                        signal.Release();
+                        
                         if (rawResponse != null)
                             Util.Log("Received: " + rawResponse);
 
@@ -282,7 +295,15 @@ namespace Syndll2
                             throw exception;
 
                         if (response == null)
-                            throw new InvalidDataException("No response received from the terminal.");
+                        {
+                            if (i < attempts && i < MaxRetries)
+                            {
+                                Util.Log("No response.  Retrying...");
+                                continue;
+                            }
+                            
+                            throw new TimeoutException("No response received from the terminal.");
+                        }
 
                         return response;
                     }
@@ -312,6 +333,19 @@ namespace Syndll2
         /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
         /// <returns>A task that yields a validated <see cref="Response"/> object.</returns>
         internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, params string[] validResponses)
+        {
+            return await SendAndReceiveAsync(requestCommand, dataToSend, 1, validResponses);
+        }
+        
+        /// <summary>
+        /// Returns an awaitable task that communicates with the terminal by sending a request and receiving a response.
+        /// </summary>
+        /// <param name="requestCommand">The request command to send.</param>
+        /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        /// <param name="attempts">Number of times to attempt the command until receiving a response.</param>
+        /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
+        /// <returns>A task that yields a validated <see cref="Response"/> object.</returns>
+        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, params string[] validResponses)
         {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
@@ -367,10 +401,10 @@ namespace Syndll2
                         await SendAsync(rawRequest);
 
                         // Wait for the response or timeout
-                        if (await signal.WaitAsync(5000))
-                            signal.Release();
-                        _receiver.MessageReceived -= handler;
-
+                        if (await signal.WaitAsync(3000))
+                            _receiver.MessageReceived -= handler;
+                        signal.Release();
+                        
                         if (rawResponse != null)
                             Util.Log("Received: " + rawResponse);
 
@@ -378,7 +412,15 @@ namespace Syndll2
                             throw exception;
 
                         if (response == null)
-                            throw new InvalidDataException("No response received from the terminal.");
+                        {
+                            if (i < attempts && i < MaxRetries)
+                            {
+                                Util.Log("No response.  Retrying...");
+                                continue;
+                            }
+
+                            throw new TimeoutException("No response received from the terminal.");
+                        }
 
                         return response;
                     }
