@@ -19,7 +19,7 @@ namespace Syndll2.Data
         private readonly int _buffersTransmitted;
         private readonly int _buffersEmpty;
         private readonly int _memoryUsed;
-        private readonly int _userDefinedField;
+        private readonly string _userDefinedField;
         private readonly TimeSpan _pollingInterval;
         private readonly TransportType _transportType;
         private readonly FingerprintUnitModes _fingerprintUnitMode;
@@ -84,7 +84,7 @@ namespace Syndll2.Data
             get { return _memoryUsed; }
         }
 
-        public int UserDefinedField
+        public string UserDefinedField
         {
             get { return _userDefinedField; }
         }
@@ -169,9 +169,8 @@ namespace Syndll2.Data
 
             // TODO: what does 37-38 represent?
 
-            if (!int.TryParse(data.Substring(39, 4), NumberStyles.None, CultureInfo.InvariantCulture, out _userDefinedField))
-                throw new InvalidDataException("Couldn't parse user defined field from terminal status data.");
-
+            _userDefinedField = data.Substring(39, 4);
+            
             _transportType = data[43] == 'T' ? TransportType.Tcp : data[43] == 'U' ? TransportType.Udp : 0;
 
             int i;
