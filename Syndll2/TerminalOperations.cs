@@ -522,12 +522,15 @@ namespace Syndll2
         {
             var response = _client.SendAndReceive(RequestCommand.Halt, null, ACK);
             ValidateAcknowledgment(response);
-            var status = ProgrammingStatus.Parse(response.Data);
 
             // A delay here is required, or some operations will fail.
             Thread.Sleep(200);
 
-            return status;
+            // programming status info might not be present
+            if (string.IsNullOrEmpty(response.Data))
+                return null;
+
+            return ProgrammingStatus.Parse(response.Data);
         }
 
 #if NET_45
@@ -542,8 +545,11 @@ namespace Syndll2
             // A delay here is required, or some operations will fail.
             await Task.Delay(200);
 
-            var status = ProgrammingStatus.Parse(response.Data);
-            return status;
+            // programming status info might not be present
+            if (string.IsNullOrEmpty(response.Data))
+                return null;
+
+            return ProgrammingStatus.Parse(response.Data);
         }
 #endif
         #endregion
@@ -556,6 +562,11 @@ namespace Syndll2
         {
             var response = _client.SendAndReceive(RequestCommand.Run, null, ACK);
             ValidateAcknowledgment(response);
+
+            // programming status info might not be present
+            if (string.IsNullOrEmpty(response.Data))
+                return null;
+
             return ProgrammingStatus.Parse(response.Data);
         }
 
@@ -567,6 +578,11 @@ namespace Syndll2
         {
             var response = await _client.SendAndReceiveAsync(RequestCommand.Run, null, ACK);
             ValidateAcknowledgment(response);
+
+            // programming status info might not be present
+            if (string.IsNullOrEmpty(response.Data))
+                return null;
+
             return ProgrammingStatus.Parse(response.Data);
         }
 #endif
