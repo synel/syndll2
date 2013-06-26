@@ -64,7 +64,17 @@ namespace Syndll2
             try
             {
                 // Now we can try to connect, using the specified timeout.
-                var result = socket.BeginConnect(endPoint, socket.EndConnect, null);
+                var result = socket.BeginConnect(endPoint, ar =>
+                    {
+                        try
+                        {
+                            socket.EndConnect(ar);
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // swallow these
+                        }
+                    }, null);
                 result.AsyncWaitHandle.WaitOne(timeout, true);
                 if (!socket.Connected)
                 {
@@ -200,7 +210,7 @@ namespace Syndll2
                 throw new ArgumentOutOfRangeException("port",
                                                       port,
                                                       "A valid TCP port must be specified.  If uncertain, leave blank and it will use the default of 3734.");
-            
+
             IPAddress ipAddress;
             try
             {
@@ -222,7 +232,7 @@ namespace Syndll2
                     throw new ArgumentException("Invalid host address.", "host");
                 }
             }
-            
+
             return new IPEndPoint(ipAddress, port);
         }
 
