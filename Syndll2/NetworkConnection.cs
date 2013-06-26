@@ -241,17 +241,26 @@ namespace Syndll2
         /// </summary>
         public void Disconnect()
         {
-            if (!Connected)
+            try
             {
-                Util.Log("Already disconnected.");
-                GateKeeper.Exit(_remoteEndPoint);
-                return;
+                if (!Connected)
+                {
+                    Util.Log("Already disconnected.");
+                    return;
+                }
+
+                _socket.Disconnect(false);                
+                Util.Log("Disconnected.");
             }
-
-            _socket.Disconnect(false);
-            GateKeeper.Exit(_remoteEndPoint);
-
-            Util.Log("Disconnected.");
+            catch (NullReferenceException)
+            {
+                // socket disconnect can cause this
+            }
+            finally
+            {
+                // ALWAYS exit the gatekeeper
+                GateKeeper.Exit(_remoteEndPoint);
+            }
         }
 
         public void Dispose()
