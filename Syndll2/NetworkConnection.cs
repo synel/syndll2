@@ -191,7 +191,7 @@ namespace Syndll2
             return listener;
         }
 
-        private static IPEndPoint GetEndPoint(string host, int port)
+        internal static IPEndPoint GetEndPoint(string host, int port)
         {
             if (string.IsNullOrWhiteSpace(host))
                 throw new ArgumentNullException("host", "The terminal's host IP address or DNS name must be provided.");
@@ -200,24 +200,29 @@ namespace Syndll2
                 throw new ArgumentOutOfRangeException("port",
                                                       port,
                                                       "A valid TCP port must be specified.  If uncertain, leave blank and it will use the default of 3734.");
-
+            
             IPAddress ipAddress;
-            if (IPAddress.TryParse(host, out ipAddress))
+            try
             {
-                // We have an IP address, but make sure that we are not affected by leading zeros being treated as octal numbers.  See:
+                // first try to parse it ourself, so we don't run into issues with leading zeros being treated as octal numbers.
                 // http://connect.microsoft.com/VisualStudio/feedback/details/634288/system-net-ipaddress-parse-mistake
 
                 ipAddress = new IPAddress(host.Split('.').Select(byte.Parse).ToArray());
             }
-            else
+            catch
             {
                 // Look up the DNS host name to make sure we have a single endpoint.
                 // This ensures the gatekeeper cannot be cheated by different dns names for the same endpoint.
-                ipAddress = Dns.GetHostAddresses(host).FirstOrDefault();
-                if (ipAddress == null)
+                try
+                {
+                    ipAddress = Dns.GetHostAddresses(host).First();
+                }
+                catch
+                {
                     throw new ArgumentException("Invalid host address.", "host");
+                }
             }
-
+            
             return new IPEndPoint(ipAddress, port);
         }
 
