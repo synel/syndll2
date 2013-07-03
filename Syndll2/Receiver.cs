@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Syndll2
 {
@@ -26,13 +25,6 @@ namespace Syndll2
             if (handler != null)
                 handler(this, args);
         }
-
-        //public static Receiver Watch(Stream stream)
-        //{
-        //    var receiver = new Receiver(stream);
-        //    Task.Factory.StartNew(receiver.WatchStream);
-        //    return receiver;
-        //}
 
         public void WatchStream()
         {
