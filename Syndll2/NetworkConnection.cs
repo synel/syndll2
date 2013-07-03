@@ -74,6 +74,10 @@ namespace Syndll2
                         {
                             // swallow these
                         }
+                        catch (SocketException)
+                        {
+                            // swallow these
+                        }
                     }, null);
                 result.AsyncWaitHandle.WaitOne(timeout, true);
                 if (!socket.Connected)

@@ -51,7 +51,16 @@ namespace Syndll2
                 return;
 
             // Conclude the async read operation.
-            var bytesRead = _stream.EndRead(asyncResult);
+            int bytesRead;
+            try
+            {
+                bytesRead = _stream.EndRead(asyncResult);
+            }
+            catch (IOException)
+            {
+                // Swallow these.  The stream is probably closed.
+                return;
+            }
 
             // Make sure the data is still good.
             // (We should never get back zeros at the start of the buffer, but it can happen during a forced disconnection.)
