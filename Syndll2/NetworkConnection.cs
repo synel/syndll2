@@ -83,11 +83,13 @@ namespace Syndll2
                 if (!socket.Connected)
                 {
                     socket.Close();
+                    GateKeeper.Exit(endPoint);
                     throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
                 }
             }
             catch
             {
+                // just in case
                 GateKeeper.Exit(endPoint);
                 throw;
             }
@@ -165,6 +167,7 @@ namespace Syndll2
             if (!socket.Connected)
             {
                 socket.Close();
+                GateKeeper.Exit(endPoint);
                 throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
             }
 
