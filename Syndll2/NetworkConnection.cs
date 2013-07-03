@@ -131,7 +131,35 @@ namespace Syndll2
             var connection = new NetworkConnection();
             var socket = connection._socket;
 
-            var connectTask = Task.Factory.FromAsync(socket.BeginConnect, socket.EndConnect, endPoint, null);
+            var connectTask = Task.Factory.FromAsync(
+                (ep, callback, state) =>
+                {
+                    try
+                    {
+                        return socket.BeginConnect(ep, callback, state);
+                    }
+                    catch
+                    {
+                        GateKeeper.Exit(ep);
+                        throw;
+                    }
+                },
+                ar =>
+                {
+                    try
+                    {
+                        socket.EndConnect(ar);
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                        // swallow these
+                    }
+                    catch (SocketException)
+                    {
+                        // swallow these
+                    }
+                },
+                endPoint, null);
 
             await Task.WhenAny(connectTask, Task.Delay(timeout));
             if (!socket.Connected)
@@ -253,7 +281,7 @@ namespace Syndll2
                     return;
                 }
 
-                _socket.Disconnect(false);                
+                _socket.Disconnect(false);
                 Util.Log("Disconnected.");
             }
             catch (NullReferenceException)

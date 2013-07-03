@@ -33,7 +33,18 @@ namespace Syndll2
                 return;
 
             // Begin an async read operation on the stream.
-            _stream.BeginRead(_rawReceiveBuffer, 0, SynelClient.MaxPacketSize, OnDataReceived, null);
+            try
+            {
+                _stream.BeginRead(_rawReceiveBuffer, 0, SynelClient.MaxPacketSize, OnDataReceived, null);
+            }
+            catch (ObjectDisposedException)
+            {
+                // Swallow these.  The stream is probably closed.
+            }
+            catch (IOException)
+            {
+                // Swallow these.  The stream is probably closed.
+            }
         }
 
         private void OnDataReceived(IAsyncResult asyncResult)
