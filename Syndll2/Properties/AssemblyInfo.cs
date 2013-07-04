@@ -11,9 +11,9 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 [assembly: Guid("a7fe65a7-0b61-4ea1-81c0-adc5a037ea17")]
 
-[assembly: AssemblyVersion("0.6.6")]
-[assembly: AssemblyFileVersion("0.6.6.31")]
-[assembly: AssemblyInformationalVersion("0.6.6-beta")]
+[assembly: AssemblyVersion("0.6.7")]
+[assembly: AssemblyFileVersion("0.6.7.32")]
+[assembly: AssemblyInformationalVersion("0.6.7-beta")]
 
 [assembly: InternalsVisibleTo("Syndll2.Tests, PublicKey=" +
 "00240000048000009400000006020000002400005253413100040000010001000f0f0c410cd366" +
