@@ -78,20 +78,16 @@ namespace Syndll2
         {
             if (endPoint == null)
                 return;
+            
+            // A brief delay here will give the terminal time to catch up between rapid connections.
+            // The delay is required to pass unit tests.
+            Thread.Sleep(10);
 
-            // We will do this in a new thread as to not block the results.
-            Task.Factory.StartNew(() =>
-                {
-                    // A brief delay here will give the terminal time to catch up between rapid connections.
-                    // The delay is required to pass unit tests.
-                    Thread.Sleep(10);
-
-                    lock (Locker)
-                    {
-                        if (Connections.Contains(endPoint))
-                            Connections.Remove(endPoint);
-                    }
-                });
+            lock (Locker)
+            {
+                if (Connections.Contains(endPoint))
+                    Connections.Remove(endPoint);
+            }
         }
     }
 }
