@@ -70,13 +70,9 @@ namespace Syndll2
                         {
                             socket.EndConnect(ar);
                         }
-                        catch (ObjectDisposedException)
+                        catch
                         {
-                            // swallow these
-                        }
-                        catch (SocketException)
-                        {
-                            // swallow these
+                            // Swallow any exceptions.  The socket is probably closed.
                         }
                     }, null);
                 result.AsyncWaitHandle.WaitOne(timeout, true);
@@ -152,13 +148,9 @@ namespace Syndll2
                     {
                         socket.EndConnect(ar);
                     }
-                    catch (ObjectDisposedException)
+                    catch
                     {
-                        // swallow these
-                    }
-                    catch (SocketException)
-                    {
-                        // swallow these
+                        // Swallow any exceptions.  The socket is probably closed.
                     }
                 },
                 endPoint, null);
@@ -287,9 +279,9 @@ namespace Syndll2
                 _socket.Disconnect(false);
                 Util.Log("Disconnected.");
             }
-            catch (NullReferenceException)
+            catch
             {
-                // socket disconnect can cause this
+                // Swallow any exceptions.  The socket is probably closed.
             }
             finally
             {

@@ -37,13 +37,9 @@ namespace Syndll2
             {
                 _stream.BeginRead(_rawReceiveBuffer, 0, SynelClient.MaxPacketSize, OnDataReceived, null);
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // Swallow these.  The stream is probably closed.
-            }
-            catch (IOException)
-            {
-                // Swallow these.  The stream is probably closed.
+                // Swallow any exceptions.  The stream is probably closed.
             }
         }
 
@@ -59,9 +55,9 @@ namespace Syndll2
             {
                 bytesRead = _stream.EndRead(asyncResult);
             }
-            catch (IOException)
+            catch
             {
-                // Swallow these.  The stream is probably closed.
+                // Swallow any exceptions.  The stream is probably closed.
                 return;
             }
 
