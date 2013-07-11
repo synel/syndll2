@@ -20,11 +20,7 @@ namespace Syndll2.Tests.FingerprintTests
                     p.Fingerprint.PutTemplate(1, TestTemplate.Data);
 
                     // Act
-                    p.Fingerprint.DeleteTemplate(1, 0);
-                    p.Fingerprint.DeleteTemplate(1, 1);
-                    var templates = p.Fingerprint.ListTemplates();
-                    foreach (var template in templates)
-                        Debug.WriteLine("{0} : {1}", template.Key, template.Value);
+                    p.Fingerprint.DeleteTemplate(1);
                     
                     // Assert
                     var status = p.Fingerprint.GetUnitStatus();

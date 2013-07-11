@@ -271,10 +271,25 @@ namespace Syndll2
         #region DeleteTemplate
 
         /// <summary>
+        /// Deletes a specific fingerprint template (all indexes) from the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        public void DeleteTemplate(long templateId)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            var data = string.Format("G-{0:D10}", templateId);
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
+            TerminalOperations.ValidateAcknowledgment(response);
+
+        }
+
+        /// <summary>
         /// Deletes a specific fingerprint template and index from the terminal.
         /// </summary>
         /// <param name="templateId">The id associated with the template.</param>
-        /// <param name="fingerIndex">The finger index te delete.</param>
+        /// <param name="fingerIndex">The finger index to delete.</param>
         public void DeleteTemplate(long templateId, int fingerIndex)
         {
             if (templateId < 1 || templateId > 9999999999)
@@ -289,11 +304,26 @@ namespace Syndll2
         }
 
 #if NET_45
+
+        /// <summary>
+        /// Returns an awaitable task that deletes a specific fingerprint template (all indexes) from the terminal.
+        /// </summary>
+        /// <param name="templateId">The id associated with the template.</param>
+        public async Task DeleteTemplateAsync(long templateId)
+        {
+            if (templateId < 1 || templateId > 9999999999)
+                throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
+
+            var data = string.Format("G-{0:D10}", templateId);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
+            TerminalOperations.ValidateAcknowledgment(response);
+        }
+
         /// <summary>
         /// Returns an awaitable task that deletes a specific fingerprint template and index from the terminal.
         /// </summary>
         /// <param name="templateId">The id associated with the template.</param>
-        /// <param name="fingerIndex">The finger index te delete.</param>
+        /// <param name="fingerIndex">The finger index to delete.</param>
         public async Task DeleteTemplateAsync(long templateId, int fingerIndex)
         {
             if (templateId < 1 || templateId > 9999999999)
