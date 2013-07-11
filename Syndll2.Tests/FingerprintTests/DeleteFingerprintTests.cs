@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Syndll2.Tests.FingerprintTests
@@ -6,6 +7,32 @@ namespace Syndll2.Tests.FingerprintTests
     [TestClass]
     public class DeleteFingerprintTests
     {
+        [TestMethod]
+        public void Can_Delete_Single_Fingerprint_Template_Multiple()
+        {
+            using (var client = TestSettings.Connect())
+            {
+                using (var p = client.Terminal.Programming())
+                {
+                    // Arrange
+                    p.Fingerprint.DeleteAllTemplates();
+                    p.Fingerprint.PutTemplate(1, TestTemplate.Data);
+                    p.Fingerprint.PutTemplate(1, TestTemplate.Data);
+
+                    // Act
+                    p.Fingerprint.DeleteTemplate(1, 0);
+                    p.Fingerprint.DeleteTemplate(1, 1);
+                    var templates = p.Fingerprint.ListTemplates();
+                    foreach (var template in templates)
+                        Debug.WriteLine("{0} : {1}", template.Key, template.Value);
+                    
+                    // Assert
+                    var status = p.Fingerprint.GetUnitStatus();
+                    Assert.AreEqual(0, status.LoadedTemplates);
+                }
+            }
+        }
+
         [TestMethod]
         public void Can_Delete_Single_Fingerprint_Template()
         {
@@ -15,10 +42,10 @@ namespace Syndll2.Tests.FingerprintTests
                 // Arrange
                 p.Fingerprint.DeleteAllTemplates();
                 p.Fingerprint.PutTemplate(1, TestTemplate.Data);
-
+                
                 // Act
-                p.Fingerprint.DeleteTemplate(1);
-
+                p.Fingerprint.DeleteTemplate(1,0);
+                
                 // Assert
                 var status = p.Fingerprint.GetUnitStatus();
                 Assert.AreEqual(0, status.LoadedTemplates);
@@ -36,7 +63,7 @@ namespace Syndll2.Tests.FingerprintTests
                 await p.Fingerprint.PutTemplateAsync(1, TestTemplate.Data);
 
                 // Act
-                await p.Fingerprint.DeleteTemplateAsync(1);
+                await p.Fingerprint.DeleteTemplateAsync(1, 0);
 
                 // Assert
                 var status = await p.Fingerprint.GetUnitStatusAsync();
@@ -52,6 +79,11 @@ namespace Syndll2.Tests.FingerprintTests
             {
                 // Arrange
                 p.Fingerprint.PutTemplate(1, TestTemplate.Data);
+                p.Fingerprint.PutTemplate(1, TestTemplate.Data);
+                p.Fingerprint.PutTemplate(1, TestTemplate.Data);
+                p.Fingerprint.PutTemplate(2, TestTemplate.Data);
+                p.Fingerprint.PutTemplate(2, TestTemplate.Data);
+                p.Fingerprint.PutTemplate(3, TestTemplate.Data);
 
                 // Act
                 p.Fingerprint.DeleteAllTemplates();
@@ -70,6 +102,11 @@ namespace Syndll2.Tests.FingerprintTests
             {
                 // Arrange
                 await p.Fingerprint.PutTemplateAsync(1, TestTemplate.Data);
+                await p.Fingerprint.PutTemplateAsync(1, TestTemplate.Data);
+                await p.Fingerprint.PutTemplateAsync(1, TestTemplate.Data);
+                await p.Fingerprint.PutTemplateAsync(2, TestTemplate.Data);
+                await p.Fingerprint.PutTemplateAsync(2, TestTemplate.Data);
+                await p.Fingerprint.PutTemplateAsync(3, TestTemplate.Data);
 
                 // Act
                 await p.Fingerprint.DeleteAllTemplatesAsync();

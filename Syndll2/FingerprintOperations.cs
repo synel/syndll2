@@ -269,31 +269,40 @@ namespace Syndll2
         #endregion
 
         #region DeleteTemplate
+
         /// <summary>
-        /// Deletes a specific fingerprint template (all indexes) from the terminal.
+        /// Deletes a specific fingerprint template and index from the terminal.
         /// </summary>
         /// <param name="templateId">The id associated with the template.</param>
-        public void DeleteTemplate(long templateId)
+        /// <param name="fingerIndex">The finger index te delete.</param>
+        public void DeleteTemplate(long templateId, int fingerIndex)
         {
             if (templateId < 1 || templateId > 9999999999)
                 throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
 
-            var data = string.Format("G0{0:D10}", templateId);
+            if (fingerIndex < 0 || fingerIndex > 9)
+                throw new ArgumentOutOfRangeException("fingerIndex", fingerIndex, "The finger index must be between 0 and 9");
+
+            var data = string.Format("G{0}{1:D10}", fingerIndex, templateId);
             var response = _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 
 #if NET_45
         /// <summary>
-        /// Returns an awaitable task that deletes a specific fingerprint template (all indexes) from the terminal.
+        /// Returns an awaitable task that deletes a specific fingerprint template and index from the terminal.
         /// </summary>
         /// <param name="templateId">The id associated with the template.</param>
-        public async Task DeleteTemplateAsync(long templateId)
+        /// <param name="fingerIndex">The finger index te delete.</param>
+        public async Task DeleteTemplateAsync(long templateId, int fingerIndex)
         {
             if (templateId < 1 || templateId > 9999999999)
                 throw new ArgumentOutOfRangeException("templateId", templateId, "The template id must be between 1 and 9999999999");
 
-            var data = string.Format("G0{0:D10}", templateId);
+            if (fingerIndex < 0 || fingerIndex > 9)
+                throw new ArgumentOutOfRangeException("fingerIndex", fingerIndex, "The finger index must be between 0 and 9");
+
+            var data = string.Format("G{0}{1:D10}", fingerIndex, templateId);
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
@@ -306,7 +315,7 @@ namespace Syndll2
         /// </summary>
         public void DeleteAllTemplates()
         {
-            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "G0@@@@@@@@@@", 3, ACK);
+            var response = _client.SendAndReceive(RequestCommand.Fingerprint, "G@@@@@@@@@@@", 3, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 
@@ -316,7 +325,7 @@ namespace Syndll2
         /// </summary>
         public async Task DeleteAllTemplatesAsync()
         {
-            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G0@@@@@@@@@@", 3, ACK);
+            var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G@@@@@@@@@@@", 3, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
 #endif
