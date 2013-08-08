@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -18,6 +19,7 @@ namespace Syndll2.Data
         }
 
         private readonly StringBuilder _buffer = new StringBuilder();
+        private IList<RdyRecord> _records;
 
         /// <summary>
         /// Gets the header information for the RDY file.
@@ -32,7 +34,10 @@ namespace Syndll2.Data
         /// <summary>
         /// Gets a list of records in the RDY file.
         /// </summary>
-        public IList<RdyRecord> Records { get; private set; }
+        public ReadOnlyCollection<RdyRecord> Records
+        {
+            get { return new ReadOnlyCollection<RdyRecord>(_records); }
+        }
 
         /// <summary>
         /// Gets a value that indicates whether or not this is a "directory" file.
@@ -44,7 +49,7 @@ namespace Syndll2.Data
         /// Gets a dictionary representing the records.
         /// Valid for keyed records only. Returns null for non-keyed records.
         /// </summary>
-        public IDictionary<string, string> RecordsDictionary
+        public ReadOnlyDictionary<string, string> RecordsDictionary
         {
             get
             {
@@ -53,9 +58,37 @@ namespace Syndll2.Data
                     return null;
 
                 // return the records as a dictionary
-                return Records.OfType<KeyedRdyRecord>()
-                              .ToDictionary(x => x.Key, x => x.Value);
+                var d = _records.OfType<KeyedRdyRecord>().ToDictionary(x => x.Key, x => x.Value);
+                return new ReadOnlyDictionary<string, string>(d);
             }
+        }
+
+        /// <summary>
+        /// Creates a new RDY file object.
+        /// </summary>
+        public static RdyFile Create(char tableType, int tableId, int recordSize, int keyLength = 0, int keyOffset = 0, bool sorted = false, bool packed = false, char tableVersion = 'A')
+        {
+            var header = RdyHeader.Create(tableType, tableId, recordSize, keyLength, keyOffset, sorted, packed, tableVersion);
+            var rdy = new RdyFile {Header = header, _records = new List<RdyRecord>()};
+            return rdy;
+        }
+
+        public void AddRecord(string value)
+        {
+            if (Header.KeyLength != 0)
+                throw new InvalidOperationException("Use AddRecord(key, value) to add records to keyed files.");
+
+            _records.Add(new RdyRecord(value));
+            Header.IncrementRecordCount();
+        }
+
+        public void AddRecord(string key, string value)
+        {
+            if (Header.KeyLength == 0)
+                throw new InvalidOperationException("Use AddRecord(value) to add records to non-keyed files.");
+            
+            _records.Add(new KeyedRdyRecord(key, value, Header.KeyLength, Header.KeyOffset, true));
+            Header.IncrementRecordCount();
         }
 
         /// <summary>
@@ -143,7 +176,7 @@ namespace Syndll2.Data
         private void ReadBody(StreamReader reader, bool force)
         {
             // Initialize a new list of records
-            Records = new List<RdyRecord>(Header.RecordCount);
+            _records = new List<RdyRecord>(Header.RecordCount);
 
             // Read while there is data
             while (!reader.EndOfStream)
@@ -163,7 +196,7 @@ namespace Syndll2.Data
                                      : new KeyedRdyRecord(rawValue, Header.KeyLength, Header.KeyOffset, force);
 
                     // add it to the results
-                    Records.Add(record);
+                    _records.Add(record);
                 }
             }
 
@@ -177,7 +210,7 @@ namespace Syndll2.Data
         private async Task ReadBodyAsync(StreamReader reader, bool force)
         {
             // Initialize a new list of records
-            Records = new List<RdyRecord>(Header.RecordCount);
+            _records = new List<RdyRecord>(Header.RecordCount);
 
             // Read while there is data
             while (!reader.EndOfStream)
@@ -197,7 +230,7 @@ namespace Syndll2.Data
                                      : new KeyedRdyRecord(rawValue, Header.KeyLength, Header.KeyOffset, force);
 
                     // add it to the results
-                    Records.Add(record);
+                    _records.Add(record);
                 }
             }
 
@@ -211,7 +244,7 @@ namespace Syndll2.Data
         private void ReadDirBody(StreamReader reader)
         {
             // Initialize a new list of records
-            Records = new List<RdyRecord>();
+            _records = new List<RdyRecord>();
 
             // file records are followed with a string of 16 Y characters
             var terminator = new string('Y', 16);
@@ -229,7 +262,7 @@ namespace Syndll2.Data
 
                 // cut the data before the terminator and write it to a new record, ignoring any trailing underscores or spaces
                 var s = _buffer.Cut(0, i).TrimEnd('_', ' ');
-                Records.Add(new RdyRecord(s));
+                _records.Add(new RdyRecord(s));
 
                 // remove the terminator from the buffer.
                 _buffer.Remove(0, terminator.Length);
@@ -240,7 +273,7 @@ namespace Syndll2.Data
         private async Task ReadDirBodyAsync(StreamReader reader)
         {
             // Initialize a new list of records
-            Records = new List<RdyRecord>();
+            _records = new List<RdyRecord>();
 
             // file records are followed with a string of 16 Y characters
             var terminator = new string('Y', 16);
@@ -258,7 +291,7 @@ namespace Syndll2.Data
 
                 // cut the data before the terminator and write it to a new record, ignoring any trailing underscores or spaces
                 var s = _buffer.Cut(0, i).TrimEnd('_', ' ');
-                Records.Add(new RdyRecord(s));
+                _records.Add(new RdyRecord(s));
 
                 // remove the terminator from the buffer.
                 _buffer.Remove(0, terminator.Length);
@@ -326,6 +359,15 @@ namespace Syndll2.Data
         }
 #endif
 
+        public override string ToString()
+        {
+            var sb = new StringBuilder(Header.TotalCharacters);
+            sb.AppendLine(Header.ToString());
+            foreach (var record in _records)
+                sb.AppendLine(record.Data.PadRight(Header.RecordSize));
+            return sb.ToString();
+        }
+
 
         /// <summary>
         /// Provides an in-memory representation of the header of an RDY formatted file.
@@ -346,6 +388,28 @@ namespace Syndll2.Data
 
             private RdyHeader()
             {
+            }
+
+            internal static RdyHeader Create(char tableType, int tableId, int recordSize, int keyLength, int keyOffset, bool sorted, bool packed, char tableVersion)
+            {
+                return new RdyHeader
+                    {
+                        TableType = tableType,
+                        TableId = tableId,
+                        TableVersion = tableVersion,
+                        TotalCharacters = HeaderSize,
+                        RecordSize = recordSize,
+                        KeyLength = keyLength,
+                        KeyOffset = keyOffset,
+                        Sorted = sorted,
+                        Packed = packed
+                    };
+            }
+
+            internal void IncrementRecordCount()
+            {
+                RecordCount++;
+                TotalCharacters += RecordSize;
             }
 
             internal static RdyHeader Parse(string data, bool force)
@@ -445,7 +509,7 @@ namespace Syndll2.Data
                 get { return _data; }
             }
 
-            public RdyRecord(string data)
+            internal RdyRecord(string data)
             {
                 if (data == null)
                     throw new ArgumentNullException("data");
@@ -472,8 +536,8 @@ namespace Syndll2.Data
                 get { return _data.Substring(_keyOffset + _keyLength); }
             }
 
-            public KeyedRdyRecord(string key, string value, bool force)
-                : base(key + value)
+            internal KeyedRdyRecord(string key, string value, int keyLength, int keyOffset, bool force)
+                : base(new string(' ', keyOffset) + key.PadRight(keyLength) + value)
             {
                 if (key == null)
                     throw new ArgumentNullException("key");
@@ -483,9 +547,12 @@ namespace Syndll2.Data
 
                 if (key.Length == 0 && !force)
                     throw new ArgumentException("The key cannot be empty.");
+
+                _keyLength = keyLength;
+                _keyOffset = keyOffset;
             }
 
-            public KeyedRdyRecord(string data, int keyLength, int keyOffset, bool force)
+            internal KeyedRdyRecord(string data, int keyLength, int keyOffset, bool force)
                 : base(data)
             {
                 if (keyOffset + keyLength > data.Length && !force)

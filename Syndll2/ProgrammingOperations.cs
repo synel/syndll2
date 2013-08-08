@@ -219,7 +219,7 @@ namespace Syndll2
             foreach (var record in rdy.Records)
             {
                 // append the record to the buffer
-                buffer.Append(record.Data);
+                buffer.Append(record.Data.PadRight(rdy.Header.RecordSize));
 
                 // don't send the buffer until we have a full block
                 if (buffer.Length < MaxBlockSize)
@@ -270,7 +270,7 @@ namespace Syndll2
             foreach (var record in rdy.Records)
             {
                 // append the record to the buffer
-                buffer.Append(record.Data);
+                buffer.Append(record.Data.PadRight(rdy.Header.RecordSize));
 
                 // don't send the buffer until we have a full block
                 if (buffer.Length < MaxBlockSize)

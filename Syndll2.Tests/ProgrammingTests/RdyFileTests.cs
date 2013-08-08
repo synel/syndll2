@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
@@ -72,6 +73,31 @@ namespace Syndll2.Tests.ProgrammingTests
             Assert.AreEqual(1, rdy.Header.TableId);
             Assert.AreEqual(87, rdy.Header.TotalCharacters);
             Assert.AreEqual(3, rdy.Records.Count);
+        }
+
+        [TestMethod]
+        public void Can_Create_New_Rdy_File()
+        {
+            var rdy = RdyFile.Create('V', 120, 23, 7);
+
+            rdy.AddRecord("00001N0", "Matt Johnson");
+            rdy.AddRecord("00002N0", "John Doe");
+
+            Assert.AreEqual('V', rdy.Header.TableType);
+            Assert.AreEqual(120, rdy.Header.TableId);
+            Assert.AreEqual(23, rdy.Header.RecordSize);
+            Assert.AreEqual(7, rdy.Header.KeyLength);
+            Assert.AreEqual(0, rdy.Header.KeyOffset);
+            Assert.AreEqual(false, rdy.Header.Sorted);
+            Assert.AreEqual(false, rdy.Header.Packed);
+
+            Assert.AreEqual(2, rdy.Header.RecordCount);
+            var expectedTotalChars = (rdy.Header.RecordCount * rdy.Header.RecordSize) + RdyFile.RdyHeader.HeaderSize;
+            Assert.AreEqual(expectedTotalChars, rdy.Header.TotalCharacters);
+
+            Debug.WriteLine(rdy.ToString());
+            const string expected = "V12000069A2323002070000\r\n00001N0Matt Johnson    \r\n00002N0John Doe        \r\n";
+            Assert.AreEqual(expected, rdy.ToString());
         }
     }
 }
