@@ -31,6 +31,7 @@ This will add a compiled version of Syndll2.dll to your project, and add a proje
  - You can use the Package Manager console within Visual Studio, or you can also use a graphical interface if you prefer.
  - If you are not familiar with Nuget, please [start here](http://docs.nuget.org/).
  - You can also visit the [Syndll2 Nuget Feed](https://nuget.org/packages/Syndll2/) directly.
+ - 
 
 ##### Staying Current
 
@@ -41,6 +42,12 @@ As changes are made to Syndll2, you can use Nuget to keep your project updated.
 *Again, note that the `-Pre` flag is required since the library is currently in prerelease status.
 After a stable version is published, you will no longer have to pass the `-Pre` flag, and this page will be updated.*
 
+##### Manual Installation
+
+If you choose not to use NuGet, you can simply download the latest release from our [Releases Page](https://github.com/synel/syndll2/releases).
+
+- Place it somewhere in your solution directory.
+- Add a reference to the `Syndll2.dll` file in your project.
 
 ### Example Usage
 
