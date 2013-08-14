@@ -46,8 +46,10 @@ After a stable version is published, you will no longer have to pass the `-Pre` 
 
 If you choose not to use NuGet, you can simply download the latest release from our [Releases Page](https://github.com/synel/syndll2/releases).
 
-- Place it somewhere in your solution directory.
+- Unzip the package and choose either the `Net40` or `Net45` subdirectory, depending on which version of .Net Framework you are using.
+- Place the files somewhere in your solution directory.
 - Add a reference to the `Syndll2.dll` file in your project.
+- Only the `Syndll2.dll` file needs to be distributed with your application.  The `.pdb` and `.xml` files are for debugging and Intellisense support.
 
 ### Example Usage
 
