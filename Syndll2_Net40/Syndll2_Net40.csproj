@@ -144,6 +144,9 @@
     <Compile Include="..\Syndll2\NetworkConnection.cs">
       <Link>NetworkConnection.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\NotificationType.cs">
+      <Link>NotificationType.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\PrimaryResponseCommand.cs">
       <Link>PrimaryResponseCommand.cs</Link>
     </Compile>

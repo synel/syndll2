@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System;
+using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Text;
+using Syndll2.Data;
 
 namespace Syndll2
 {
@@ -29,7 +32,7 @@ namespace Syndll2
 
         public string Data
         {
-            get { return _message.Command == PrimaryResponseCommand.DataRecord ? _message.Data : null; }
+            get { return _message.Data; }
         }
 
         public IPEndPoint RemoteEndPoint
@@ -37,9 +40,73 @@ namespace Syndll2
             get { return _remoteEndPoint; }
         }
 
+        public NotificationType Type
+        {
+            get
+            {
+                return (NotificationType)_message.Command;
+            }
+        }
+
         public void Acknowledege()
         {
+            if (Type != NotificationType.Data)
+                throw new InvalidOperationException("Acknowledge is only valid for data notifications.");
+
             var command = SynelClient.CreateCommand(RequestCommand.AcknowledgeLastRecord, TerminalId);
+
+            Util.Log(string.Format("Sending: {0}", command));
+
+            var bytes = Encoding.ASCII.GetBytes(command);
+            _stream.Write(bytes, 0, bytes.Length);
+        }
+
+        public void Reply(bool allowed, string message, int displayTimeInSeconds = 0, TextAlignment alignment = TextAlignment.Center)
+        {
+            if (Type != NotificationType.Query)
+                throw new InvalidOperationException("Reply is only valid for query notifications.");
+
+            if (displayTimeInSeconds < -1 || displayTimeInSeconds > 9)
+                throw new ArgumentOutOfRangeException("displayTimeInSeconds", "Display time must be between 0 and 9 seconds, or pass -1 to send a # to the terminal program.");
+
+            message = message.TrimEnd();
+            if (message.Length >= 100)
+                message = message.Substring(0, 99);
+
+            // only pad the message if we can see it
+            if (displayTimeInSeconds != 0)
+            {
+                const int screenWidth = 16;
+                if (message.Length < screenWidth)
+                {
+                    switch (alignment)
+                    {
+                        case TextAlignment.Left:
+                            message = message.PadRight(screenWidth, ' ');
+                            break;
+
+                        case TextAlignment.Center:
+                            message = message.PadLeft((message.Length + screenWidth)/2).PadRight(screenWidth);
+                            break;
+
+                        case TextAlignment.Right:
+                            message = message.PadLeft(screenWidth, ' ');
+                            break;
+                    }
+                }
+
+                message = message.PadRight(32); // at least 32 chars to clear the display
+                message += " "; // extra char to avoid truncation behavior on the terminal
+            }
+
+            var data = string.Format(CultureInfo.InvariantCulture, "L{0}{1:D2}{2}{3}",
+                allowed ? "Y" : "N",
+                message.Length,
+                displayTimeInSeconds == -1 ? "#" : displayTimeInSeconds.ToString(CultureInfo.InvariantCulture),
+                message);
+            var command = SynelClient.CreateCommand(RequestCommand.QueryReply, TerminalId, data);
+
+            Util.Log(string.Format("Sending: {0}", command));
 
             var bytes = Encoding.ASCII.GetBytes(command);
             _stream.Write(bytes, 0, bytes.Length);

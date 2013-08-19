@@ -48,6 +48,7 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NotificationType.cs" />
     <Compile Include="Receiver.cs" />
     <Compile Include="PushNotification.cs" />
     <Compile Include="SynelServer.cs" />
@@ -100,7 +101,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Properties\Syndll2.snk" />
-    <None Include="Syndll2.nuspec" />
+    <None Include="Syndll2.nuspec">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
