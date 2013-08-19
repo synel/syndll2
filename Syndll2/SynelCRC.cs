@@ -7,7 +7,7 @@ namespace Syndll2
     /// <summary>
     /// Implements the CRC algorithm from the Synel Communication Protocol user's guide.
     /// </summary>
-    internal static class SynelCRC
+    public static class SynelCRC
     {
         /// <summary>
         /// Calculates a CRC code for the value provided.
