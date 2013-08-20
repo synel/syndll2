@@ -31,7 +31,6 @@ This will add a compiled version of Syndll2.dll to your project, and add a proje
  - You can use the Package Manager console within Visual Studio, or you can also use a graphical interface if you prefer.
  - If you are not familiar with Nuget, please [start here](http://docs.nuget.org/).
  - You can also visit the [Syndll2 Nuget Feed](https://nuget.org/packages/Syndll2/) directly.
- - 
 
 ##### Staying Current
 
