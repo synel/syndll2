@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Syndll2.Data;
 
@@ -341,9 +342,13 @@ namespace Syndll2
                 case ProgrammingOperationStatus.TableAlreadyExists:
                     throw new InvalidOperationException("The table already exists.  If you want to replace the table, set replace=true.");
 
+                case ProgrammingOperationStatus.BlockReceivedAndBeingStored:
+                    // A slower terminal might report this.  Sleep to give it time to commit. 
+                    Thread.Sleep(20);
+                    return;
+
                 case ProgrammingOperationStatus.BlockReceivedAndStored:
-                case ProgrammingOperationStatus.BlockReceivedAndBeingStored:  // TODO? should we do anything special for this case?
-                    return; // OK
+                    return;
             }
 
             throw new InvalidOperationException(string.Format("Unknown return status '{0}'.", (char)status.OperationStatus));
