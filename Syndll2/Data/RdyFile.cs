@@ -257,7 +257,7 @@ namespace Syndll2.Data
 
                 // see if the buffer contains a terminator yet.
                 var b = _buffer.ToString();
-                var i = b.IndexOf(terminator, StringComparison.Ordinal);
+                var i = b.LastIndexOf(terminator, StringComparison.Ordinal);
                 if (i == -1) continue;
 
                 // cut the data before the terminator and write it to a new record, ignoring any trailing underscores or spaces
