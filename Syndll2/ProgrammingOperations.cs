@@ -300,7 +300,7 @@ namespace Syndll2
                        SynelNumericFormat.Convert(blockNumber, 2) +
                        block;
 
-            var response = _client.SendAndReceive(RequestCommand.TableOperation, data, "t");
+            var response = _client.SendAndReceive(RequestCommand.TableOperation, data, 3, "t");
 
             ValidateSendBlockResult(response);
 
@@ -317,7 +317,7 @@ namespace Syndll2
                        SynelNumericFormat.Convert(blockNumber, 2) +
                        block;
 
-            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data, "t");
+            var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data, 3, "t");
 
             ValidateSendBlockResult(response);
 
