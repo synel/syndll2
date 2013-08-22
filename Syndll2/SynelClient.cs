@@ -240,7 +240,7 @@ namespace Syndll2
             }
 
             // Setup the receive event handler
-            var signal = new SemaphoreSlim(1);
+            var signal = new ManualResetEvent(false);
             string rawResponse = null;
             Response response = null;
             Exception exception = null;
@@ -265,7 +265,7 @@ namespace Syndll2
                 rawResponse = message.RawResponse;
                 response = message.Response;
                 exception = message.Exception;
-                signal.Release();
+                signal.Set();
             };
             
             // retry loop
@@ -274,16 +274,15 @@ namespace Syndll2
                 try
                 {
                     // Reset the signal
-                    signal.Wait();
+                    signal.Reset();
 
                     // Send the request
                     var rawRequest = CreateCommand(requestCommand, dataToSend);
                     Send(rawRequest);
 
                     // Wait for the response or timeout
-                    signal.Wait(5000);
-                    signal.Release();
-                        
+                    signal.WaitOne(5000);
+                    
                     if (rawResponse != null)
                         Util.Log("Received: " + rawResponse);
 
