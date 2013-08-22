@@ -55,6 +55,12 @@ namespace Syndll2
 
             var command = SynelClient.CreateCommand(RequestCommand.AcknowledgeLastRecord, TerminalId);
 
+            if (!_stream.CanWrite)
+            {
+                Util.Log(string.Format("Couldn't Send: {0}", command));
+                return;
+            }
+
             Util.Log(string.Format("Sending: {0}", command));
 
             var bytes = Encoding.ASCII.GetBytes(command);
@@ -103,6 +109,12 @@ namespace Syndll2
                 displayTimeInSeconds < 0 ? "#" : displayTimeInSeconds.ToString(CultureInfo.InvariantCulture),
                 message);
             var command = SynelClient.CreateCommand(RequestCommand.QueryReply, TerminalId, data);
+
+            if (!_stream.CanWrite)
+            {
+                Util.Log(string.Format("Couldn't Send: {0}", command));
+                return;
+            }
 
             Util.Log(string.Format("Sending: {0}", command));
 
