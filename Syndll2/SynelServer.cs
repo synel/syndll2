@@ -43,9 +43,9 @@ namespace Syndll2
                     var history = new List<string>();
 
                     var receiver = new Receiver(stream);
-                    var signal = new SemaphoreSlim(1);
+                    var signal = new ManualResetEvent(false);
                     
-                    receiver.MessageHandler += message => 
+                    receiver.MessageHandler = message => 
                         {
                             if (!history.Contains(message.RawResponse))
                             {
@@ -58,11 +58,15 @@ namespace Syndll2
                                     action(notification);
                                 }
                             }
-                            signal.Release();
+                            signal.Set();
                         };
+                    
                     receiver.WatchStream();
-                    while (stream.CanRead)
-                        signal.Wait();
+
+                    // Wait until a message is received
+                    while (stream.CanRead && socket.Connected)
+                        if (signal.WaitOne(100))
+                            break;
                 });
             return new SynelServer(connection);
         }
