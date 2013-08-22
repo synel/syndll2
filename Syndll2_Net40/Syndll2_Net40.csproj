@@ -138,9 +138,6 @@
     <Compile Include="..\Syndll2\InvalidCrcException.cs">
       <Link>InvalidCrcException.cs</Link>
     </Compile>
-    <Compile Include="..\Syndll2\MessageReceivedEventArgs.cs">
-      <Link>MessageReceivedEventArgs.cs</Link>
-    </Compile>
     <Compile Include="..\Syndll2\NetworkConnection.cs">
       <Link>NetworkConnection.cs</Link>
     </Compile>
@@ -158,6 +155,9 @@
     </Compile>
     <Compile Include="..\Syndll2\PushNotification.cs">
       <Link>PushNotification.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\ReceivedMessage.cs">
+      <Link>ReceivedMessage.cs</Link>
     </Compile>
     <Compile Include="..\Syndll2\Receiver.cs">
       <Link>Receiver.cs</Link>

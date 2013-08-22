@@ -3,9 +3,9 @@
 namespace Syndll2
 {
     /// <summary>
-    /// Event arguments, used for events when a message is received from the terminal.
+    /// Represents a message that is received from a terminal.
     /// </summary>
-    internal class MessageReceivedEventArgs : EventArgs
+    internal class ReceivedMessage
     {
         /// <summary>
         /// Gets the interpreted response received from the terminal.

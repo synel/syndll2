@@ -244,83 +244,75 @@ namespace Syndll2
             string rawResponse = null;
             Response response = null;
             Exception exception = null;
-            EventHandler<MessageReceivedEventArgs> handler = (sender, args) =>
+            
+            _receiver.MessageHandler = message => 
             {
-                if (!string.IsNullOrEmpty(args.RawResponse))
+                if (!string.IsNullOrEmpty(message.RawResponse))
                 {
                     // Don't ever handle host query responses here.
-                    if (args.RawResponse[0] == 'q')
+                    if (message.RawResponse[0] == 'q')
                         return;
 
                     // If the valid list is populated, don't handle responses that aren't in it.
-                    if (validResponses.Length > 0 && !validResponses.Any(x => args.RawResponse.StartsWith(x)))
+                    if (validResponses.Length > 0 && !validResponses.Any(x => message.RawResponse.StartsWith(x)))
                         return;
 
                     // Ignore responses intended for other terminals
-                    if (args.Response != null && args.Response.TerminalId != _terminalId)
+                    if (message.Response != null && message.Response.TerminalId != _terminalId)
                         return;
                 }
 
-                rawResponse = args.RawResponse;
-                response = args.Response;
-                exception = args.Exception;
+                rawResponse = message.RawResponse;
+                response = message.Response;
+                exception = message.Exception;
                 signal.Release();
             };
-            _receiver.MessageReceived += handler;
-
-            try
+            
+            // retry loop
+            for (int i = 1; i <= MaxRetries; i++)
             {
-                // retry loop
-                for (int i = 1; i <= MaxRetries; i++)
+                try
                 {
-                    try
-                    {
-                        // Reset the signal
-                        signal.Wait();
+                    // Reset the signal
+                    signal.Wait();
 
-                        // Send the request
-                        var rawRequest = CreateCommand(requestCommand, dataToSend);
-                        Send(rawRequest);
+                    // Send the request
+                    var rawRequest = CreateCommand(requestCommand, dataToSend);
+                    Send(rawRequest);
 
-                        // Wait for the response or timeout
-                        if (signal.Wait(5000))
-                            _receiver.MessageReceived -= handler;
-                        signal.Release();
+                    // Wait for the response or timeout
+                    signal.Wait(5000);
+                    signal.Release();
                         
-                        if (rawResponse != null)
-                            Util.Log("Received: " + rawResponse);
+                    if (rawResponse != null)
+                        Util.Log("Received: " + rawResponse);
 
-                        if (exception != null)
-                            throw exception;
+                    if (exception != null)
+                        throw exception;
 
-                        if (response == null)
-                        {
-                            if (i < attempts && i < MaxRetries)
-                            {
-                                Util.Log("No response.  Retrying...");
-                                continue;
-                            }
-                            
-                            throw new TimeoutException("No response received from the terminal.");
-                        }
-
-                        return response;
-                    }
-                    catch (InvalidCrcException)
+                    if (response == null)
                     {
-                        // swallow these until the retry limit is reached
-                        if (i < MaxRetries)
-                            Util.Log("Bad CRC.  Retrying...");
+                        if (i < attempts && i < MaxRetries)
+                        {
+                            Util.Log("No response.  Retrying...");
+                            continue;
+                        }
+                            
+                        throw new TimeoutException("No response received from the terminal.");
                     }
-                }
 
-                // We've hit the retry limit, throw a CRC exception.
-                throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
+                    return response;
+                }
+                catch (InvalidCrcException)
+                {
+                    // swallow these until the retry limit is reached
+                    if (i < MaxRetries)
+                        Util.Log("Bad CRC.  Retrying...");
+                }
             }
-            finally
-            {
-                _receiver.MessageReceived -= handler;
-            }
+
+            // We've hit the retry limit, throw a CRC exception.
+            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
         }
 
 #if NET_45
@@ -361,83 +353,75 @@ namespace Syndll2
             string rawResponse = null;
             Response response = null;
             Exception exception = null;
-            EventHandler<MessageReceivedEventArgs> handler = (sender, args) =>
+            
+            _receiver.MessageHandler = message => 
             {
-                if (!string.IsNullOrEmpty(args.RawResponse))
+                if (!string.IsNullOrEmpty(message.RawResponse))
                 {
                     // Don't ever handle host query responses here.
-                    if (args.RawResponse[0] == 'q')
+                    if (message.RawResponse[0] == 'q')
                         return;
 
                     // If the valid list is populated, don't handle responses that aren't in it.
-                    if (validResponses.Length > 0 && !validResponses.Any(x => args.RawResponse.StartsWith(x)))
+                    if (validResponses.Length > 0 && !validResponses.Any(x => message.RawResponse.StartsWith(x)))
                         return;
 
                     // Ignore responses intended for other terminals
-                    if (args.Response != null && args.Response.TerminalId != _terminalId)
+                    if (message.Response != null && message.Response.TerminalId != _terminalId)
                         return;
                 }
 
-                rawResponse = args.RawResponse;
-                response = args.Response;
-                exception = args.Exception;
+                rawResponse = message.RawResponse;
+                response = message.Response;
+                exception = message.Exception;
                 signal.Release();
             };
-            _receiver.MessageReceived += handler;
-
-            try
+            
+            // retry loop
+            for (int i = 1; i <= MaxRetries; i++)
             {
-                // retry loop
-                for (int i = 1; i <= MaxRetries; i++)
+                try
                 {
-                    try
-                    {
-                        // Reset the signal
-                        await signal.WaitAsync();
+                    // Reset the signal
+                    await signal.WaitAsync();
 
-                        // Send the request
-                        var rawRequest = CreateCommand(requestCommand, dataToSend);
-                        await SendAsync(rawRequest);
+                    // Send the request
+                    var rawRequest = CreateCommand(requestCommand, dataToSend);
+                    await SendAsync(rawRequest);
 
-                        // Wait for the response or timeout
-                        if (await signal.WaitAsync(5000))
-                            _receiver.MessageReceived -= handler;
-                        signal.Release();
+                    // Wait for the response or timeout
+                    await signal.WaitAsync(5000);
+                    signal.Release();
                         
-                        if (rawResponse != null)
-                            Util.Log("Received: " + rawResponse);
+                    if (rawResponse != null)
+                        Util.Log("Received: " + rawResponse);
 
-                        if (exception != null)
-                            throw exception;
+                    if (exception != null)
+                        throw exception;
 
-                        if (response == null)
+                    if (response == null)
+                    {
+                        if (i < attempts && i < MaxRetries)
                         {
-                            if (i < attempts && i < MaxRetries)
-                            {
-                                Util.Log("No response.  Retrying...");
-                                continue;
-                            }
-
-                            throw new TimeoutException("No response received from the terminal.");
+                            Util.Log("No response.  Retrying...");
+                            continue;
                         }
 
-                        return response;
+                        throw new TimeoutException("No response received from the terminal.");
                     }
-                    catch (InvalidCrcException)
-                    {
-                        // swallow these until the retry limit is reached
-                        if (i < MaxRetries)
-                            Util.Log("Bad CRC.  Retrying...");
-                    }
-                }
 
-                // We've hit the retry limit, throw a CRC exception.
-                throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
+                    return response;
+                }
+                catch (InvalidCrcException)
+                {
+                    // swallow these until the retry limit is reached
+                    if (i < MaxRetries)
+                        Util.Log("Bad CRC.  Retrying...");
+                }
             }
-            finally
-            {
-                _receiver.MessageReceived -= handler;
-            }
+
+            // We've hit the retry limit, throw a CRC exception.
+            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
         }
 #endif
 

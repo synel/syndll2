@@ -17,14 +17,7 @@ namespace Syndll2
             _stream = stream;
         }
 
-        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
-
-        private void OnMessageReceived(MessageReceivedEventArgs args)
-        {
-            var handler = MessageReceived;
-            if (handler != null)
-                handler(this, args);
-        }
+        public Action<ReceivedMessage> MessageHandler { get; set; }
 
         public void WatchStream()
         {
@@ -83,19 +76,20 @@ namespace Syndll2
                 var packet = Encoding.ASCII.GetString(data);
 
                 // Try to parse it
-                var args = new MessageReceivedEventArgs { RawResponse = packet };
+                var message = new ReceivedMessage { RawResponse = packet };
                 try
                 {
-                    args.Response = Response.Parse(packet);
+                    message.Response = Response.Parse(packet);
                 }
                 catch (Exception ex)
                 {
                     // pass any exception into the event arguments
-                    args.Exception = ex;
+                    message.Exception = ex;
                 }
 
-                // Raise the event
-                OnMessageReceived(args);
+                // Handle the message
+                if (MessageHandler != null)
+                    MessageHandler(message);
             }
 
             // Repeat, to continually watch the stream for incoming data.

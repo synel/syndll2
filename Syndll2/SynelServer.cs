@@ -44,16 +44,17 @@ namespace Syndll2
 
                     var receiver = new Receiver(stream);
                     var signal = new SemaphoreSlim(1);
-                    receiver.MessageReceived += (sender, args) =>
+                    
+                    receiver.MessageHandler += message => 
                         {
-                            if (!history.Contains(args.RawResponse))
+                            if (!history.Contains(message.RawResponse))
                             {
-                                history.Add(args.RawResponse);
+                                history.Add(message.RawResponse);
 
-                                Util.Log(string.Format("Received: {0}", args.RawResponse));
-                                if (args.Response != null)
+                                Util.Log(string.Format("Received: {0}", message.RawResponse));
+                                if (message.Response != null)
                                 {
-                                    var notification = new PushNotification(stream, args.Response, (IPEndPoint) socket.RemoteEndPoint);
+                                    var notification = new PushNotification(stream, message.Response, (IPEndPoint) socket.RemoteEndPoint);
                                     action(notification);
                                 }
                             }
