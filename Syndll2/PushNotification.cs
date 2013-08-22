@@ -122,7 +122,13 @@ namespace Syndll2
 
             // Discard ACK replies to responses.  It keeps the line clean, and we don't need them.
             var recieveBuffer = new byte[SynelClient.MaxPacketSize];
-            _stream.Read(recieveBuffer, 0, SynelClient.MaxPacketSize);
+            var bytesRecieved = _stream.Read(recieveBuffer, 0, SynelClient.MaxPacketSize);
+            if (bytesRecieved > 0)
+            {
+                // At least log them for debugging.
+                var s = Encoding.ASCII.GetString(recieveBuffer, 0, bytesRecieved);
+                Util.Log(string.Format("Recieved: {0}", s));
+            }
         }
     }
 }
