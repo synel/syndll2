@@ -75,31 +75,27 @@ namespace Syndll2
             if (message.Length >= 100)
                 message = message.Substring(0, 99);
 
-            // only pad the message if we can see it
-            if (displayTimeInSeconds != 0)
+            const int screenWidth = 16;
+            if (message.Length < screenWidth)
             {
-                const int screenWidth = 16;
-                if (message.Length < screenWidth)
+                switch (alignment)
                 {
-                    switch (alignment)
-                    {
-                        case TextAlignment.Left:
-                            message = message.PadRight(screenWidth, ' ');
-                            break;
+                    case TextAlignment.Left:
+                        message = message.PadRight(screenWidth, ' ');
+                        break;
 
-                        case TextAlignment.Center:
-                            message = message.PadLeft((message.Length + screenWidth)/2).PadRight(screenWidth);
-                            break;
+                    case TextAlignment.Center:
+                        message = message.PadLeft((message.Length + screenWidth) / 2).PadRight(screenWidth);
+                        break;
 
-                        case TextAlignment.Right:
-                            message = message.PadLeft(screenWidth, ' ');
-                            break;
-                    }
+                    case TextAlignment.Right:
+                        message = message.PadLeft(screenWidth, ' ');
+                        break;
                 }
-
-                message = message.PadRight(32); // at least 32 chars to clear the display
-                message += " "; // extra char to avoid truncation behavior on the terminal
             }
+
+            message = message.PadRight(32); // at least 32 chars to clear the display
+            message += " "; // extra char to avoid truncation behavior on the terminal
 
             var data = string.Format(CultureInfo.InvariantCulture, "L{0}{1:D2}{2}{3}",
                 allowed ? "Y" : "N",
