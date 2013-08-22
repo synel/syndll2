@@ -111,6 +111,9 @@ namespace Syndll2.Data
             _previousBlockNumber = SynelNumericFormat.Convert(data.Substring(8, 2));
             _currentBlockNumber = SynelNumericFormat.Convert(data.Substring(10, 2));
             _debugInfo = data.Substring(12, 3);
+
+            // Workaround for some terminals that don't always report the correct operation status code.
+            if (_fileName == "Run_") _operationStatus = ProgrammingOperationStatus.InRunMode;
         }
 
         internal ProgrammingStatus()
