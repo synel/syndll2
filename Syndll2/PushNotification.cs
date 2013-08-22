@@ -55,16 +55,7 @@ namespace Syndll2
 
             var command = SynelClient.CreateCommand(RequestCommand.AcknowledgeLastRecord, TerminalId);
 
-            if (!_stream.CanWrite)
-            {
-                Util.Log(string.Format("Couldn't Send: {0}", command));
-                return;
-            }
-
-            Util.Log(string.Format("Sending: {0}", command));
-
-            var bytes = Encoding.ASCII.GetBytes(command);
-            _stream.Write(bytes, 0, bytes.Length);
+            SendResponse(command);
         }
 
         public void Reply(bool allowed, string message, TimeSpan displayTime = default(TimeSpan), TextAlignment alignment = TextAlignment.Left)
@@ -110,6 +101,11 @@ namespace Syndll2
                 message);
             var command = SynelClient.CreateCommand(RequestCommand.QueryReply, TerminalId, data);
 
+            SendResponse(command);
+        }
+
+        private void SendResponse(string command)
+        {
             if (!_stream.CanWrite)
             {
                 Util.Log(string.Format("Couldn't Send: {0}", command));
@@ -120,6 +116,13 @@ namespace Syndll2
 
             var bytes = Encoding.ASCII.GetBytes(command);
             _stream.Write(bytes, 0, bytes.Length);
+
+            if (!_stream.CanRead)
+                return;
+
+            // Discard ACK replies to responses.  It keeps the line clean, and we don't need them.
+            var recieveBuffer = new byte[SynelClient.MaxPacketSize];
+            _stream.Read(recieveBuffer, 0, SynelClient.MaxPacketSize);
         }
     }
 }
