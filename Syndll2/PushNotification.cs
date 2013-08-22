@@ -127,7 +127,7 @@ namespace Syndll2
             {
                 // At least log them for debugging.
                 var s = Encoding.ASCII.GetString(recieveBuffer, 0, bytesRecieved);
-                Util.Log(string.Format("Recieved: {0}", s));
+                Util.Log(string.Format("Received: {0}", s));
             }
         }
     }
