@@ -210,6 +210,7 @@ namespace Syndll2
                             using (var stream = new NetworkStream(socket))
                             {
                                 action(stream, socket);
+                                stream.Flush();
                             }
                         }
                         finally
