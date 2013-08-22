@@ -61,13 +61,15 @@ namespace Syndll2
             _stream.Write(bytes, 0, bytes.Length);
         }
 
-        public void Reply(bool allowed, string message, int displayTimeInSeconds = 0, TextAlignment alignment = TextAlignment.Center)
+        public void Reply(bool allowed, string message, TimeSpan displayTime = default(TimeSpan), TextAlignment alignment = TextAlignment.Left)
         {
             if (Type != NotificationType.Query)
                 throw new InvalidOperationException("Reply is only valid for query notifications.");
 
+            var displayTimeInSeconds = (int)displayTime.TotalSeconds;
             if (displayTimeInSeconds < -1 || displayTimeInSeconds > 9)
-                throw new ArgumentOutOfRangeException("displayTimeInSeconds", "Display time must be between 0 and 9 seconds, or pass -1 to send a # to the terminal program.");
+                throw new ArgumentOutOfRangeException("displayTime",
+                    "Display time must be between 0 and 9 seconds, or pass -1 seconds to send a # to the terminal program.");
 
             message = message.TrimEnd();
             if (message.Length >= 100)
@@ -102,7 +104,7 @@ namespace Syndll2
             var data = string.Format(CultureInfo.InvariantCulture, "L{0}{1:D2}{2}{3}",
                 allowed ? "Y" : "N",
                 message.Length,
-                displayTimeInSeconds == -1 ? "#" : displayTimeInSeconds.ToString(CultureInfo.InvariantCulture),
+                displayTimeInSeconds < 0 ? "#" : displayTimeInSeconds.ToString(CultureInfo.InvariantCulture),
                 message);
             var command = SynelClient.CreateCommand(RequestCommand.QueryReply, TerminalId, data);
 
