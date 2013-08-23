@@ -84,17 +84,9 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
-            var fileName = Path.GetFileName(path);
-
             // Read the file into an RDY
-            RdyFile rdy;
-            Util.Log("Reading " + fileName);
-            using (var stream = File.OpenRead(path))
-            {
-                rdy = RdyFile.Read(stream, force);
-                rdy.Filename = fileName;
-            }
-
+            var rdy = RdyFile.Read(path, force);
+            
             // Check for directory files
             if (rdy.IsDirectoryFile)
             {
@@ -111,7 +103,7 @@ namespace Syndll2
             else
             {
                 // Just upload the single RDY
-                Util.Log("Uploading " + fileName);
+                Util.Log("Uploading " + rdy.Filename);
                 UploadTableFromRdy(rdy, replace, force);
             }
         }
@@ -131,16 +123,8 @@ namespace Syndll2
             if (!File.Exists(path))
                 throw new FileNotFoundException(string.Format("Could not find a file at {0}", Path.GetFullPath(path)));
 
-            var fileName = Path.GetFileName(path);
-
             // Read the file into an RDY
-            RdyFile rdy;
-            Util.Log("Reading " + fileName);
-            using (var stream = File.OpenRead(path))
-            {
-                rdy = await RdyFile.ReadAsync(stream, force);
-                rdy.Filename = fileName;
-            }
+            var rdy = RdyFile.Read(path, force);
 
             // Check for directory files
             if (rdy.IsDirectoryFile)
@@ -158,7 +142,7 @@ namespace Syndll2
             else
             {
                 // Just upload the single RDY
-                Util.Log("Uploading " + fileName);
+                Util.Log("Uploading " + rdy.Filename);
                 await UploadTableFromRdyAsync(rdy, replace, force);
             }
         }

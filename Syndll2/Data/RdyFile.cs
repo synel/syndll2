@@ -92,9 +92,28 @@ namespace Syndll2.Data
         }
 
         /// <summary>
+        /// Reads an RDY file from a file on disk.
+        /// </summary>
+        /// <param name="path">The path to the RDY file.</param>
+        /// <param name="force">True to read the file even if it fails validation. (False by default.)</param>
+        public static RdyFile Read(string path, bool force = false)
+        {
+            var fileName = Path.GetFileName(path);
+            Util.Log("Reading " + fileName);
+            using (var stream = File.OpenRead(path))
+            {
+                var rdy = Read(stream, force);
+                rdy.Filename = fileName;
+                return rdy;
+            }
+        }
+
+        /// <summary>
         /// Reads an RDY file from an input stream.
         /// </summary>
-        internal static RdyFile Read(Stream stream, bool force = false)
+        /// /// <param name="stream">The stream containing the RDY file.</param>
+        /// <param name="force">True to read the file even if it fails validation. (False by default.)</param>
+        public static RdyFile Read(Stream stream, bool force = false)
         {
             if (stream == null)
                 throw new ArgumentNullException("stream", "The input stream cannot be null.");
