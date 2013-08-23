@@ -37,6 +37,20 @@ namespace Syndll2
         }
 
         /// <summary>
+        /// Gets the remote endpoint (IP and Port) if connected via network.
+        /// </summary>
+        public IPEndPoint RemoteEndPoint
+        {
+            get
+            {
+                var networkConnection = _connection as NetworkConnection;
+                return networkConnection != null
+                    ? networkConnection.RemoteEndPoint
+                    : null;
+            }
+        }
+
+        /// <summary>
         /// Gets an accessor that exposes the operations that can be performed on the terminal.
         /// </summary>
         public TerminalOperations Terminal { get { return _terminal; } }

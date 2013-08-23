@@ -23,6 +23,14 @@ namespace Syndll2
             get { return _socket != null && _socket.Connected; }
         }
 
+        public IPEndPoint RemoteEndPoint
+        {
+            get
+            {
+                return _remoteEndPoint;
+            }
+        }
+
         public Stream Stream { get; internal set; }
 
         private NetworkConnection(Socket socket = null)
