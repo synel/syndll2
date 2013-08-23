@@ -114,12 +114,13 @@ namespace Syndll2.Data
             if (data == null)
                 throw new ArgumentNullException("data");
 
-            const int expectedLength = 69;
-            if (data.Length != expectedLength)
+            const int minLength = 69;
+            const int maxLength = 70;
+            if (data.Length < minLength || data.Length > maxLength)
                 throw new ArgumentException(
                     string.Format(
-                        "Network configuration data should be exactly {0} characters, and you passed {1} characters.  " +
-                        "Do not pass the command, terminal id, or CRC here.", expectedLength, data.Length),
+                        "Network configuration data should be between {0} and {1} characters, and you passed {2} characters.  " +
+                        "Do not pass the command, terminal id, or CRC here.", minLength, maxLength, data.Length),
                     "data");
 
             return new NetworkConfiguration(data);
@@ -163,6 +164,8 @@ namespace Syndll2.Data
 
             if (!int.TryParse(data.Substring(67, 2), NumberStyles.None, CultureInfo.InvariantCulture, out _networkCardFirmwareVersion))
                 throw new InvalidDataException("Couldn't parse the network card firmware version from network configuration data.");
+
+            // TODO: if there's a 70th character - does it mean anything?
         }
 
         
