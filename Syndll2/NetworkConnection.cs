@@ -38,10 +38,10 @@ namespace Syndll2
             get { return _stream; }
         }
 
-        private NetworkConnection(Socket socket = null)
+        private NetworkConnection(Socket socket)
         {
-            // Use the socket passed in, or create a new socket.
-            _socket = socket ?? new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _socket = socket;
+            _remoteEndPoint = (IPEndPoint) _socket.RemoteEndPoint;
             
             // If the socket is connected, get the stream.
             if (_socket.Connected)
@@ -71,8 +71,8 @@ namespace Syndll2
             // Enter the gate.  This will block until it is safe to connect.
             GateKeeper.Enter(endPoint, timeout);
 
-            var connection = new NetworkConnection {_remoteEndPoint = endPoint};
-            var socket = connection._socket;
+            
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             try
             {
                 // Now we can try to connect, using the specified timeout.
@@ -104,7 +104,7 @@ namespace Syndll2
 
             Util.Log("Connected!");
 
-            return connection;
+            return new NetworkConnection(socket);
         }
 
 #if NET_45
@@ -132,8 +132,7 @@ namespace Syndll2
             await GateKeeper.EnterAsync(endPoint, timeout);
 
             // Now we can try to connect, using the specified timeout.
-            var connection = new NetworkConnection();
-            var socket = connection._socket;
+            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
             var connectTask = Task.Factory.FromAsync(
                 (ep, callback, state) =>
@@ -169,12 +168,9 @@ namespace Syndll2
                 throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
             }
 
-            // Track the endpoint separately in the connection so we can clean up properly
-            connection._remoteEndPoint = endPoint;
-
             Util.Log("Connected!");
 
-            return connection;
+            return new NetworkConnection(socket);
         }
 #endif
 
@@ -185,7 +181,8 @@ namespace Syndll2
 
         public static NetworkConnection Listen(int port, Action<NetworkConnection> action)
         {
-            var listener = new NetworkConnection();
+            var listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            var listener = new NetworkConnection(listenerSocket);
 
             var localEndPoint = new IPEndPoint(IPAddress.Any, port);
             listener._socket.Bind(localEndPoint);
