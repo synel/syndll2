@@ -1,6 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net;
+using System.IO;
 using System.Threading;
 
 namespace Syndll2
@@ -38,37 +37,45 @@ namespace Syndll2
 
         public static SynelServer Listen(int port, Action<PushNotification> action)
         {
-            var connection = NetworkConnection.Listen(port, (stream, socket) =>
+            var listener = NetworkConnection.Listen(port, connection =>
+            {
+                var signal = new ManualResetEvent(false);
+                
+                var receiver = new Receiver(connection.Stream, () => connection.Connected);
+                receiver.MessageHandler = message =>
                 {
-                    var history = new List<string>();
+                    // Ignore any backlog of messages
+                    if (!message.LastInBuffer)
+                        return;
 
-                    var receiver = new Receiver(stream);
-                    var signal = new ManualResetEvent(false);
-                    
-                    receiver.MessageHandler = message => 
+                    if (message.Response != null)
+                    {
+                        using (var client = new SynelClient(connection, message.Response.TerminalId, true))
                         {
-                            if (!history.Contains(message.RawResponse))
+                            // Reset the line just in case anything is backlogged
+                            client.Terminal.ResetLine();
+
+                            var notification = new PushNotification(client, message.Response);
+                            
+                            // Only push valid notifications
+                            if (Enum.IsDefined(typeof(NotificationType), notification.Type))
                             {
-                                history.Add(message.RawResponse);
-
-                                Util.Log(string.Format("Received: {0}", message.RawResponse));
-                                if (message.Response != null)
-                                {
-                                    var notification = new PushNotification(stream, message.Response, (IPEndPoint) socket.RemoteEndPoint);
-                                    action(notification);
-                                }
+                                Util.Log(string.Format("Listener Received: {0}", message.RawResponse));
+                                action(notification);
                             }
-                            signal.Set();
-                        };
-                    
-                    receiver.WatchStream();
+                        }
+                    }
+                    signal.Set();
+                };
 
-                    // Wait until a message is received
-                    while (stream.CanRead && socket.Connected)
-                        if (signal.WaitOne(100))
-                            break;
-                });
-            return new SynelServer(connection);
+                receiver.WatchStream();
+
+                // Wait until a message is received
+                while (connection.Stream.CanRead && connection.Connected)
+                    if (signal.WaitOne(100))
+                        break;
+            });
+            return new SynelServer(listener);
         }
     }
 }

@@ -14,9 +14,11 @@ namespace Syndll2
     internal class NetworkConnection : IConnection
     {
         private readonly Socket _socket;
+        private readonly Stream _stream;
         private readonly ManualResetEvent _acceptSignaler = new ManualResetEvent(false);
         private IPEndPoint _remoteEndPoint;
         private bool _disposed;
+        
 
         public bool Connected
         {
@@ -31,17 +33,19 @@ namespace Syndll2
             }
         }
 
-        public Stream Stream { get; internal set; }
+        public Stream Stream
+        {
+            get { return _stream; }
+        }
 
         private NetworkConnection(Socket socket = null)
         {
-            _socket = socket ??
-                      new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
-                          {
-                              // todo: see if these timeout values need adjusting
-                              ReceiveTimeout = 5000,
-                              SendTimeout = 5000
-                          };
+            // Use the socket passed in, or create a new socket.
+            _socket = socket ?? new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            
+            // If the socket is connected, get the stream.
+            if (_socket.Connected)
+                _stream = new NetworkStream(_socket);
         }
 
         public static NetworkConnection Connect(string host, int port = 3734, TimeSpan timeout = default(TimeSpan))
@@ -60,14 +64,14 @@ namespace Syndll2
         {
             Util.Log("Connecting to terminal...");
 
-            // default timeout is two seconds
+            // default timeout is five seconds
             if (timeout <= TimeSpan.Zero)
-                timeout = TimeSpan.FromSeconds(2);
+                timeout = TimeSpan.FromSeconds(5);
 
             // Enter the gate.  This will block until it is safe to connect.
             GateKeeper.Enter(endPoint, timeout);
 
-            var connection = new NetworkConnection();
+            var connection = new NetworkConnection {_remoteEndPoint = endPoint};
             var socket = connection._socket;
             try
             {
@@ -98,12 +102,6 @@ namespace Syndll2
                 throw;
             }
 
-            // Track the endpoint separately in the connection so we can clean up properly
-            connection._remoteEndPoint = endPoint;
-
-            // Get the stream for the connection
-            connection.Stream = new NetworkStream(socket, true);
-
             Util.Log("Connected!");
 
             return connection;
@@ -126,9 +124,9 @@ namespace Syndll2
         {
             Util.Log("Connecting to terminal...");
 
-            // default timeout is two seconds
+            // default timeout is five seconds
             if (timeout <= TimeSpan.Zero)
-                timeout = TimeSpan.FromSeconds(2);
+                timeout = TimeSpan.FromSeconds(5);
 
             // Enter the gate.  This will block until it is safe to connect.
             await GateKeeper.EnterAsync(endPoint, timeout);
@@ -174,21 +172,18 @@ namespace Syndll2
             // Track the endpoint separately in the connection so we can clean up properly
             connection._remoteEndPoint = endPoint;
 
-            // Get the stream for the connection
-            connection.Stream = new NetworkStream(socket, true);
-
             Util.Log("Connected!");
 
             return connection;
         }
 #endif
 
-        public static NetworkConnection Listen(Action<Stream, Socket> action)
+        public static NetworkConnection Listen(Action<NetworkConnection> action)
         {
             return Listen(3734, action);
         }
 
-        public static NetworkConnection Listen(int port, Action<Stream, Socket> action)
+        public static NetworkConnection Listen(int port, Action<NetworkConnection> action)
         {
             var listener = new NetworkConnection();
 
@@ -206,28 +201,18 @@ namespace Syndll2
                     listener._socket.BeginAccept(ar =>
                     {
                         listener._acceptSignaler.Set();
-                        var socket = listener._socket.EndAccept(ar);
-
-                        var ep = (IPEndPoint)socket.RemoteEndPoint;
-                        Util.Log(string.Format("Inbound connection from {0}", ep.Address));
-
-                        GateKeeper.Enter(ep, TimeSpan.FromSeconds(2));
-
-                        try
+                        using (var socket = listener._socket.EndAccept(ar))
                         {
-                            using (var stream = new NetworkStream(socket))
+                            var ep = (IPEndPoint) socket.RemoteEndPoint;
+                            Util.Log(string.Format("Inbound connection from {0}", ep.Address));
+
+                            using (var connection = new NetworkConnection(socket))
                             {
-                                action(stream, socket);
-                                stream.Flush();
+                                connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
+                                action(connection);
+                                connection.Stream.Flush();
                             }
                         }
-                        finally
-                        {
-                            socket.Disconnect(false);
-                            GateKeeper.Exit(ep);
-                            Util.Log("Disconnected.");
-                        }
-
                     }, null);
 
                     listener._acceptSignaler.WaitOne();
@@ -312,8 +297,8 @@ namespace Syndll2
             if (disposing)
             {
                 Disconnect();
-                if (Stream != null)
-                    Stream.Dispose();
+                if (_stream != null)
+                    _stream.Dispose();
                 _socket.Dispose();
                 _acceptSignaler.Dispose();
             }

@@ -18,6 +18,7 @@ namespace Syndll2
         private readonly Receiver _receiver;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
+        private readonly bool _reuseConnection;
         private bool _disposed;
 
         /// <summary>
@@ -56,17 +57,17 @@ namespace Syndll2
         public TerminalOperations Terminal { get { return _terminal; } }
 
 
-        private SynelClient(IConnection connection, int terminalId)
+        internal SynelClient(IConnection connection, int terminalId, bool reuseConnection = false)
         {
             if (terminalId > 31)
                 throw new ArgumentOutOfRangeException("terminalId", terminalId,
-                                                      "The terminal ID must be between 0 and 31.");
+                    "The terminal ID must be between 0 and 31.");
 
             _terminalId = terminalId;
+            _reuseConnection = reuseConnection;
             _connection = connection;
-
             _terminal = new TerminalOperations(this);
-            _receiver = new Receiver(_connection.Stream);
+            _receiver = new Receiver(connection.Stream, () => connection.Connected);
             _receiver.WatchStream();
         }
 
@@ -161,7 +162,7 @@ namespace Syndll2
             if (_disposed)
                 return;
 
-            if (disposing)
+            if (disposing && !_reuseConnection)
                 _connection.Dispose();
 
             _disposed = true;
@@ -258,8 +259,8 @@ namespace Syndll2
             string rawResponse = null;
             Response response = null;
             Exception exception = null;
-            
-            _receiver.MessageHandler = message => 
+
+            _receiver.MessageHandler = message =>
             {
                 if (!string.IsNullOrEmpty(message.RawResponse))
                 {
@@ -281,7 +282,7 @@ namespace Syndll2
                 exception = message.Exception;
                 signal.Set();
             };
-            
+
             // retry loop
             for (int i = 1; i <= MaxRetries; i++)
             {
@@ -296,7 +297,7 @@ namespace Syndll2
 
                     // Wait for the response or timeout
                     signal.WaitOne(5000);
-                    
+
                     if (rawResponse != null)
                         Util.Log("Received: " + rawResponse);
 
@@ -310,9 +311,12 @@ namespace Syndll2
                             Util.Log("No response.  Retrying...");
                             continue;
                         }
-                            
+
                         throw new TimeoutException("No response received from the terminal.");
                     }
+
+                    // detach the message handler
+                    _receiver.MessageHandler = null;
 
                     return response;
                 }
@@ -340,7 +344,7 @@ namespace Syndll2
         {
             return await SendAndReceiveAsync(requestCommand, dataToSend, 1, validResponses);
         }
-        
+
         /// <summary>
         /// Returns an awaitable task that communicates with the terminal by sending a request and receiving a response.
         /// </summary>
@@ -349,7 +353,8 @@ namespace Syndll2
         /// <param name="attempts">Number of times to attempt the command until receiving a response.</param>
         /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
         /// <returns>A task that yields a validated <see cref="Response"/> object.</returns>
-        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, params string[] validResponses)
+        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, int attempts = 1,
+            params string[] validResponses)
         {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
@@ -366,8 +371,8 @@ namespace Syndll2
             string rawResponse = null;
             Response response = null;
             Exception exception = null;
-            
-            _receiver.MessageHandler = message => 
+
+            _receiver.MessageHandler = message =>
             {
                 if (!string.IsNullOrEmpty(message.RawResponse))
                 {
@@ -389,7 +394,7 @@ namespace Syndll2
                 exception = message.Exception;
                 signal.Release();
             };
-            
+
             // retry loop
             for (int i = 1; i <= MaxRetries; i++)
             {
@@ -405,7 +410,7 @@ namespace Syndll2
                     // Wait for the response or timeout
                     await signal.WaitAsync(5000);
                     signal.Release();
-                        
+
                     if (rawResponse != null)
                         Util.Log("Received: " + rawResponse);
 
@@ -422,6 +427,9 @@ namespace Syndll2
 
                         throw new TimeoutException("No response received from the terminal.");
                     }
+
+                    // detach the message handler
+                    _receiver.MessageHandler = null;
 
                     return response;
                 }

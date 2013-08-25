@@ -22,5 +22,10 @@ namespace Syndll2
         /// If there was an exception while parsing the response it will be contained here.
         /// </summary>
         public Exception Exception { get; set; }
+
+        /// <summary>
+        /// True if this was the last message in the buffer.  False if there are more messages pending.
+        /// </summary>
+        public bool LastInBuffer { get; set; }
     }
 }

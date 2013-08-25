@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
-using System.Net;
-using System.Text;
 using Syndll2.Data;
 
 namespace Syndll2
 {
     public class PushNotification
     {
-        private readonly Stream _stream;
         private readonly Response _message;
-        private readonly IPEndPoint _remoteEndPoint;
+        private readonly SynelClient _client;
 
-        internal PushNotification(Stream stream, Response message, IPEndPoint remoteEndPoint)
+        internal PushNotification(SynelClient client, Response message)
         {
-            _stream = stream;
+            _client = client;
             _message = message;
-            _remoteEndPoint = remoteEndPoint;
         }
 
         public string RawMessage
@@ -35,11 +30,6 @@ namespace Syndll2
             get { return _message.Data; }
         }
 
-        public IPEndPoint RemoteEndPoint
-        {
-            get { return _remoteEndPoint; }
-        }
-
         public NotificationType Type
         {
             get
@@ -48,14 +38,20 @@ namespace Syndll2
             }
         }
 
+        public SynelClient Client
+        {
+            get
+            {
+                return _client;
+            }
+        }
+
         public void Acknowledege()
         {
             if (Type != NotificationType.Data)
                 throw new InvalidOperationException("Acknowledge is only valid for data notifications.");
 
-            var command = SynelClient.CreateCommand(RequestCommand.AcknowledgeLastRecord, TerminalId);
-
-            SendResponse(command);
+            _client.SendAndReceive(RequestCommand.AcknowledgeLastRecord, null, ACK);
         }
 
         public void Reply(bool allowed, string message, TimeSpan displayTime = default(TimeSpan), TextAlignment alignment = TextAlignment.Left)
@@ -99,36 +95,13 @@ namespace Syndll2
                 message.Length,
                 displayTimeInSeconds < 0 ? "#" : displayTimeInSeconds.ToString(CultureInfo.InvariantCulture),
                 message);
-            var command = SynelClient.CreateCommand(RequestCommand.QueryReply, TerminalId, data);
 
-            SendResponse(command);
+            _client.SendAndReceive(RequestCommand.QueryReply, data, ACK);
         }
 
-        private void SendResponse(string command)
-        {
-            if (!_stream.CanWrite)
-            {
-                Util.Log(string.Format("Couldn't Send: {0}", command));
-                return;
-            }
-
-            Util.Log(string.Format("Sending: {0}", command));
-
-            var bytes = Encoding.ASCII.GetBytes(command);
-            _stream.Write(bytes, 0, bytes.Length);
-
-            if (!_stream.CanRead)
-                return;
-
-            // Discard ACK replies to responses.  It keeps the line clean, and we don't need them.
-            var recieveBuffer = new byte[SynelClient.MaxPacketSize];
-            var bytesRecieved = _stream.Read(recieveBuffer, 0, SynelClient.MaxPacketSize);
-            if (bytesRecieved > 0)
-            {
-                // At least log them for debugging.
-                var s = Encoding.ASCII.GetString(recieveBuffer, 0, bytesRecieved);
-                Util.Log(string.Format("Received: {0}", s));
-            }
-        }
+        
+        // ReSharper disable InconsistentNaming
+        private readonly string ACK = ControlChars.ACK.ToString(CultureInfo.InvariantCulture);
+        // ReSharper restore InconsistentNaming
     }
 }

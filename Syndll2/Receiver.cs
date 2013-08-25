@@ -8,13 +8,15 @@ namespace Syndll2
 {
     internal class Receiver
     {
-        private readonly byte[] _rawReceiveBuffer = new byte[SynelClient.MaxPacketSize];
+        private readonly byte[] _rawReceiveBuffer = new byte[SynelClient.PacketOverheadSize]; // intentionally small
         private readonly List<byte> _receiveBuffer = new List<byte>(SynelClient.MaxPacketSize * 2);
         private readonly Stream _stream;
+        private readonly Func<bool> _connected;
 
-        public Receiver(Stream stream)
+        public Receiver(Stream stream, Func<bool> connected)
         {
             _stream = stream;
+            _connected = connected;
         }
 
         public Action<ReceivedMessage> MessageHandler { get; set; }
@@ -28,7 +30,7 @@ namespace Syndll2
             // Begin an async read operation on the stream.
             try
             {
-                _stream.BeginRead(_rawReceiveBuffer, 0, SynelClient.MaxPacketSize, OnDataReceived, null);
+                _stream.BeginRead(_rawReceiveBuffer, 0, _rawReceiveBuffer.Length, OnDataReceived, null);
             }
             catch
             {
@@ -38,6 +40,10 @@ namespace Syndll2
 
         private void OnDataReceived(IAsyncResult asyncResult)
         {
+            // Make sure we're still connected.
+            if (!_connected())
+                return;
+
             // Make sure we can still read from the stream.
             if (!_stream.CanRead)
                 return;
@@ -62,38 +68,71 @@ namespace Syndll2
             // Copy the raw data read into the full receive buffer.
             _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
 
+            // Read anything else on the stream to make sure the line is clear.
+            _stream.ReadTimeout = 200;
+            try
+            {
+                do
+                {
+                    // Read synchronously
+                    bytesRead = _stream.Read(_rawReceiveBuffer, 0, _rawReceiveBuffer.Length);
+                    if (bytesRead > 0)
+                    {
+                        // Copy the raw data read into the full receive buffer.
+                        _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
+                    }
+                } while (bytesRead > 0);
+            }
+            catch (IOException)
+            {
+                // An IOException occurs when the read timeout is reached
+            }
+
+            // Read packets from the buffer
+            ReadFromBuffer();
+
+            // Repeat, to continually watch the stream for incoming data.
+            WatchStream();
+        }
+
+        private void ReadFromBuffer()
+        {
             // See if there is an EOT in the read buffer
             int eotPosition;
             while ((eotPosition = _receiveBuffer.IndexOf((byte)ControlChars.EOT)) >= 0)
             {
+                // see if this is the last one in the current buffer
+                var lastInBuffer = eotPosition == _receiveBuffer.LastIndexOf((byte)ControlChars.EOT);
+
                 // Pull out all before and including the EOT
                 var size = eotPosition + 1;
-                var data = new byte[size];
-                _receiveBuffer.CopyTo(0, data, 0, size);
+                var data = _receiveBuffer.Take(size).ToArray();
                 _receiveBuffer.RemoveRange(0, size);
 
                 // Get a string representation of the packet data
                 var packet = Encoding.ASCII.GetString(data);
 
                 // Try to parse it
-                var message = new ReceivedMessage { RawResponse = packet };
+                var message = new ReceivedMessage { RawResponse = packet, LastInBuffer = lastInBuffer };
                 try
                 {
                     message.Response = Response.Parse(packet);
                 }
+                catch (InvalidCrcException)
+                {
+                    // Don't fire when the message fails the CRC check
+                    continue;
+                }
                 catch (Exception ex)
                 {
-                    // pass any exception into the event arguments
+                    // pass any other exception into the event arguments
                     message.Exception = ex;
                 }
 
                 // Handle the message
-                if (MessageHandler != null)
+                if (MessageHandler != null && _connected())
                     MessageHandler(message);
             }
-
-            // Repeat, to continually watch the stream for incoming data.
-            WatchStream();
         }
     }
 }
