@@ -54,6 +54,9 @@
     <Compile Include="..\Syndll2\Data\BaudRates.cs">
       <Link>Data\BaudRates.cs</Link>
     </Compile>
+    <Compile Include="..\Syndll2\Data\ClockTransition.cs">
+      <Link>Data\ClockTransition.cs</Link>
+    </Compile>
     <Compile Include="..\Syndll2\Data\DisplayTypes.cs">
       <Link>Data\DisplayTypes.cs</Link>
     </Compile>
@@ -107,6 +110,9 @@
     </Compile>
     <Compile Include="..\Syndll2\Data\SingleRecord.cs">
       <Link>Data\SingleRecord.cs</Link>
+    </Compile>
+    <Compile Include="..\Syndll2\Data\SystemParameters.cs">
+      <Link>Data\SystemParameters.cs</Link>
     </Compile>
     <Compile Include="..\Syndll2\Data\TechnicianModeSettings.cs">
       <Link>Data\TechnicianModeSettings.cs</Link>

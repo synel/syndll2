@@ -12,7 +12,7 @@ namespace Syndll2.Data
     /// <summary>
     /// Provides an in-memory representation of an RDY formatted file.
     /// </summary>
-    public class RdyFile
+    public sealed class RdyFile
     {
         private RdyFile()
         {

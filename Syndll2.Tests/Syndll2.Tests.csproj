@@ -74,6 +74,7 @@
     <Compile Include="FingerprintTests\TestTemplate.cs" />
     <Compile Include="ProgrammingTests\DeleteTableTests.cs" />
     <Compile Include="ProgrammingTests\RdyFileTests.cs" />
+    <Compile Include="ProgrammingTests\SystemParametersTests.cs" />
     <Compile Include="ProgrammingTests\UploadTableTests.cs" />
     <Compile Include="ProgrammingTests\GetOneRecordTests.cs" />
     <Compile Include="ProgrammingTests\ProgrammingModeTests.cs" />

@@ -48,6 +48,8 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\ClockTransition.cs" />
+    <Compile Include="Data\SystemParameters.cs" />
     <Compile Include="NotificationType.cs" />
     <Compile Include="Receiver.cs" />
     <Compile Include="PushNotification.cs" />
