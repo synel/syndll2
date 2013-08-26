@@ -40,21 +40,30 @@ namespace Syndll2
             var listener = NetworkConnection.Listen(port, connection =>
             {
                 var signal = new ManualResetEvent(false);
+
+                var lineNeedsToBeReset = false;
                 
                 var receiver = new Receiver(connection.Stream, () => connection.Connected);
                 receiver.MessageHandler = message =>
                 {
                     // Ignore any backlog of messages
                     if (!message.LastInBuffer)
+                    {
+                        lineNeedsToBeReset = true;
                         return;
+                    }
 
                     if (message.Response != null)
                     {
                         using (var client = new SynelClient(connection, message.Response.TerminalId, true))
                         {
-                            // Reset the line just in case anything is backlogged
-                            client.Terminal.ResetLine();
-
+                            // Reset the line if we detected a backlog earlier
+                            if (lineNeedsToBeReset)
+                            {
+                                client.Terminal.ResetLine();
+                                lineNeedsToBeReset = false;
+                            }
+                            
                             var notification = new PushNotification(client, message.Response);
                             
                             // Only push valid notifications
