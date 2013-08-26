@@ -68,6 +68,9 @@ namespace Syndll2.Data
         /// </summary>
         public static RdyFile Create(char tableType, int tableId, int recordSize, int keyLength = 0, int keyOffset = 0, bool sorted = false, bool packed = false, char tableVersion = 'A')
         {
+            if (recordSize < 0 || recordSize > 99)
+                throw new ArgumentOutOfRangeException("recordSize", "Invalid record size for RDY file.");
+
             var header = RdyHeader.Create(tableType, tableId, recordSize, keyLength, keyOffset, sorted, packed, tableVersion);
             var rdy = new RdyFile {Header = header, _records = new List<RdyRecord>()};
             return rdy;

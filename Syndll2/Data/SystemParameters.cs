@@ -40,7 +40,7 @@ namespace Syndll2.Data
 
         public RdyFile GetRdyFile()
         {
-            var values = _parameters
+            var values = TrimParameters(_parameters)
                 .OrderBy(x => x.Key)
                 .Select(x => string.Format("^{0:D3}{1}", x.Key, x.Value));
             var data = string.Join("", values) + "^^";
@@ -56,6 +56,65 @@ namespace Syndll2.Data
             return items.ToDictionary(
                 x => int.Parse(x.Substring(0, 3)),
                 x => x.Length > 3 ? x.Substring(3) : "");
+        }
+
+        private static IEnumerable<KeyValuePair<int, string>> TrimParameters(Dictionary<int, string> parameters)
+        {
+            foreach (var parameter in parameters)
+            {
+                var key = parameter.Key;
+                var value = parameter.Value;
+
+                // skip empty values
+                if (string.IsNullOrEmpty(value))
+                    continue;
+
+                // skip default values, and clean up where possible
+                switch (key)
+                {
+                    case 0:
+                        if (value == "6") continue;
+                        break;
+                    case 1:
+                        if (value == "B") continue;
+                        break;
+                    case 2:
+                        if (value == "000000") continue;
+                        var l = parameters.ContainsKey(0) ? int.Parse(parameters[0]) : 6;
+                        if (value.Length > l) value = value.Substring(0, l);
+                        break;
+                    case 3:
+                        if (value == "Y") continue;
+                        break;
+                    case 4:
+                        if (value == "15") continue;
+                        break;
+                    case 6:
+                        if (value == "50") continue;
+                        if (value == "--") continue;
+                        break;
+                    case 7:
+                        if (value == "075") continue;
+                        break;
+                    case 8:
+                        if (value == "15") continue;
+                        break;
+                    case 9:
+                        if (value == "Y") continue;
+                        break;
+                    case 10:
+                        if (value == "N") continue;
+                        break;
+                    case 11:
+                        if (value == "0") continue;
+                        break;
+                    case 13:
+                        if (value == "--") continue;
+                        break;
+                }
+
+                yield return new KeyValuePair<int, string>(key, value);
+            }
         }
 
         public IList<ClockTransition> ClockTransitions

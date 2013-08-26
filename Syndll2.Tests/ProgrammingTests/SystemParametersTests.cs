@@ -77,5 +77,25 @@ namespace Syndll2.Tests.ProgrammingTests
             var value = sys.Parameters[5];
             Assert.AreEqual("11003130200+110311130200-1", value);
         }
+
+        [TestMethod]
+        public void Can_Program_Clock_Transition()
+        {
+            var rdy = RdyFile.Read(@"TestData\sys001.rdy");
+            var sys = new SystemParameters(rdy);
+
+            sys.ClockTransitions = new ClockTransition[]
+                                   {
+                                       new FixedClockTransition(1, new DateTime(2013, 3, 10, 2, 0, 0)),
+                                       new FixedClockTransition(-1, new DateTime(2013, 11, 3, 2, 0, 0))
+                                   };
+
+            using (var client = TestSettings.Connect())
+            using (var p = client.Terminal.Programming())
+            {
+                var rdyFile = sys.GetRdyFile();
+                p.UploadTableFromRdy(rdyFile);
+            }
+        }
     }
 }
