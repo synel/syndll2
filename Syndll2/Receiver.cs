@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -69,9 +70,22 @@ namespace Syndll2
             _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
 
             // Read anything else on the stream to make sure the line is clear.
-            _stream.ReadTimeout = 200;
+            ReadFromStreamUntilTimeout(200);
+
+            // Read packets from the buffer
+            ReadFromBuffer();
+
+            // Repeat, to continually watch the stream for incoming data.
+            WatchStream();
+        }
+
+        [DebuggerNonUserCode]
+        private void ReadFromStreamUntilTimeout(int timeoutMilliseconds)
+        {
+            _stream.ReadTimeout = timeoutMilliseconds;
             try
             {
+                int bytesRead;
                 do
                 {
                     // Read synchronously
@@ -85,14 +99,9 @@ namespace Syndll2
             }
             catch (IOException)
             {
-                // An IOException occurs when the read timeout is reached
+                // An IOException occurs when the read timeout is reached.
+                // The [DebuggerNonUserCode] attribute prevents it from being shown as a first chance excption.
             }
-
-            // Read packets from the buffer
-            ReadFromBuffer();
-
-            // Repeat, to continually watch the stream for incoming data.
-            WatchStream();
         }
 
         private void ReadFromBuffer()
