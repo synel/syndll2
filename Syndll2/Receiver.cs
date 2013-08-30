@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 
 namespace Syndll2
@@ -69,39 +69,13 @@ namespace Syndll2
             // Copy the raw data read into the full receive buffer.
             _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
 
-            // Read anything else on the stream to make sure the line is clear.
-            ReadFromStreamUntilTimeout(200);
-
-            // Read packets from the buffer
-            ReadFromBuffer();
+            // Read packets from the buffer, unless there's still more on the stream to read.
+            var networkStream = _stream as NetworkStream;
+            if (networkStream == null || !networkStream.DataAvailable)
+                ReadFromBuffer();
 
             // Repeat, to continually watch the stream for incoming data.
             WatchStream();
-        }
-
-        [DebuggerNonUserCode]
-        private void ReadFromStreamUntilTimeout(int timeoutMilliseconds)
-        {
-            _stream.ReadTimeout = timeoutMilliseconds;
-            try
-            {
-                int bytesRead;
-                do
-                {
-                    // Read synchronously
-                    bytesRead = _stream.Read(_rawReceiveBuffer, 0, _rawReceiveBuffer.Length);
-                    if (bytesRead > 0)
-                    {
-                        // Copy the raw data read into the full receive buffer.
-                        _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
-                    }
-                } while (bytesRead > 0);
-            }
-            catch (IOException)
-            {
-                // An IOException occurs when the read timeout is reached.
-                // The [DebuggerNonUserCode] attribute prevents it from being shown as a first chance excption.
-            }
         }
 
         private void ReadFromBuffer()
