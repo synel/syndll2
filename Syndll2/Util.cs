@@ -83,7 +83,7 @@ namespace Syndll2
                                  .Replace(ControlChars.ACK.ToString(CultureInfo.InvariantCulture), "(ACK)")
                                  .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
 
-            Trace.WriteLine(string.Format("{0}: {1}", Thread.CurrentThread.ManagedThreadId, s));
+            Trace.WriteLine(s);
         }
     }
 }
