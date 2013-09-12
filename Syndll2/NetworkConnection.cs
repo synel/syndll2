@@ -18,6 +18,7 @@ namespace Syndll2
         private readonly ManualResetEvent _acceptSignaler = new ManualResetEvent(false);
         private IPEndPoint _remoteEndPoint;
         private bool _disposed;
+        private bool _useGateKeeper;
         
 
         public bool Connected
@@ -38,10 +39,11 @@ namespace Syndll2
             get { return _stream; }
         }
 
-        private NetworkConnection(Socket socket)
+        private NetworkConnection(Socket socket, bool useGateKeeper)
         {
             _socket = socket;
             _remoteEndPoint = (IPEndPoint) _socket.RemoteEndPoint;
+            _useGateKeeper = useGateKeeper;
             
             // If the socket is connected, get the stream.
             if (_socket.Connected)
@@ -104,7 +106,7 @@ namespace Syndll2
 
             Util.Log("Connected!");
 
-            return new NetworkConnection(socket);
+            return new NetworkConnection(socket, true);
         }
 
 #if NET_45
@@ -182,7 +184,7 @@ namespace Syndll2
         public static NetworkConnection Listen(int port, Action<NetworkConnection> action)
         {
             var listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            var listener = new NetworkConnection(listenerSocket);
+            var listener = new NetworkConnection(listenerSocket, false);
 
             var localEndPoint = new IPEndPoint(IPAddress.Any, port);
             listener._socket.Bind(localEndPoint);
@@ -203,7 +205,7 @@ namespace Syndll2
                             var ep = (IPEndPoint) socket.RemoteEndPoint;
                             Util.Log(string.Format("Inbound connection from {0}", ep.Address));
 
-                            using (var connection = new NetworkConnection(socket))
+                            using (var connection = new NetworkConnection(socket, false))
                             {
                                 connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
                                 action(connection);
@@ -276,8 +278,9 @@ namespace Syndll2
             }
             finally
             {
-                // ALWAYS exit the gatekeeper
-                GateKeeper.Exit(_remoteEndPoint);
+                // Exit the gatekeeper
+                if (_useGateKeeper)
+                    GateKeeper.Exit(_remoteEndPoint);
             }
         }
 
