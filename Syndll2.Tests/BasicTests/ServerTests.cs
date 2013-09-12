@@ -13,17 +13,23 @@ namespace Syndll2.Tests.BasicTests
         {
             using (SynelServer.Listen(notification =>
                 {
-                    if (notification.Data != null)
+                    if (notification.Type == NotificationType.Data)
                     {
                         Console.WriteLine(notification.Data);
                         notification.Acknowledege();
+                    }
+
+                    if (notification.Type == NotificationType.Query)
+                    {
+                        Console.WriteLine(notification.Data);
+                        notification.Reply(true, 0, "Success");
                     }
 
                 }))
             {
 
                 // run the server for awhile
-                Thread.Sleep(10000);
+                Thread.Sleep(100000);
             }
         }
     }

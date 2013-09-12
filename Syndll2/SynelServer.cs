@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Diagnostics;
 using System.Threading;
 
 namespace Syndll2
@@ -35,54 +35,85 @@ namespace Syndll2
             return Listen(3734, action);
         }
 
+        public static SynelServer Listen(TimeSpan idleTimeout, Action<PushNotification> action)
+        {
+            return Listen(3734, idleTimeout, action);
+        }
+
         public static SynelServer Listen(int port, Action<PushNotification> action)
+        {
+            var idleTimeout = TimeSpan.FromSeconds(3);
+            return Listen(3734, idleTimeout, action);
+        }
+
+        public static SynelServer Listen(int port, TimeSpan idleTimeout, Action<PushNotification> action)
         {
             var listener = NetworkConnection.Listen(port, connection =>
             {
-                var signal = new ManualResetEvent(false);
-
-                var lineNeedsToBeReset = false;
-                
-                var receiver = new Receiver(connection.Stream, () => connection.Connected);
-                receiver.MessageHandler = message =>
+                // Prepare the timer for disconnect on idle timeout
+                using (var timer = new Timer(state =>
                 {
-                    // Ignore any backlog of messages
-                    if (!message.LastInBuffer)
-                    {
-                        lineNeedsToBeReset = true;
-                        return;
-                    }
+                    Util.Log("Idle Timeout");
+                    connection.Disconnect();
+                }, null, idleTimeout, Timeout.InfiniteTimeSpan))
+                {
+                    var signal = new ManualResetEvent(false);
 
-                    if (message.Response != null)
+                    var lineNeedsToBeReset = false;
+
+                    var receiver = new Receiver(connection.Stream, () => connection.Connected);
+                    receiver.MessageHandler = message =>
                     {
-                        using (var client = new SynelClient(connection, message.Response.TerminalId, true))
+                        // Stop the idle timeout timer, since we have data
+                        try
                         {
-                            // Reset the line if we detected a backlog earlier
-                            if (lineNeedsToBeReset)
+                            // ReSharper disable once AccessToDisposedClosure
+                            timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                            // Swallow these
+                            Debug.WriteLine("XXXXXXXXXXXXXXXXXXXXX");
+                        }
+
+                        // Ignore any backlog of messages
+                        if (!message.LastInBuffer)
+                        {
+                            lineNeedsToBeReset = true;
+                            return;
+                        }
+
+                        if (message.Response != null)
+                        {
+                            using (var client = new SynelClient(connection, message.Response.TerminalId, true))
                             {
-                                client.Terminal.ResetLine();
-                                lineNeedsToBeReset = false;
-                            }
-                            
-                            var notification = new PushNotification(client, message.Response);
-                            
-                            // Only push valid notifications
-                            if (Enum.IsDefined(typeof(NotificationType), notification.Type))
-                            {
-                                Util.Log(string.Format("Listener Received: {0}", message.RawResponse));
-                                action(notification);
+                                // Reset the line if we detected a backlog earlier
+                                if (lineNeedsToBeReset)
+                                {
+                                    client.Terminal.ResetLine();
+                                    lineNeedsToBeReset = false;
+                                }
+
+                                var notification = new PushNotification(client, message.Response);
+
+                                // Only push valid notifications
+                                if (Enum.IsDefined(typeof(NotificationType), notification.Type))
+                                {
+                                    Util.Log(string.Format("Listener Received: {0}", message.RawResponse));
+                                    action(notification);
+                                }
                             }
                         }
-                    }
-                    signal.Set();
-                };
+                        signal.Set();
+                    };
 
-                receiver.WatchStream();
+                    receiver.WatchStream();
 
-                // Wait until a message is received
-                while (connection.Stream.CanRead && connection.Connected)
-                    if (signal.WaitOne(100))
-                        break;
+                    // Wait until a message is received
+                    while (connection.Stream.CanRead && connection.Connected)
+                        if (signal.WaitOne(100))
+                            break;
+                }
             });
             return new SynelServer(listener);
         }
