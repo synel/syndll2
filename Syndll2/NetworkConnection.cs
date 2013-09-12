@@ -199,18 +199,25 @@ namespace Syndll2
                     listener._acceptSignaler.Reset();
                     listener._socket.BeginAccept(ar =>
                     {
-                        listener._acceptSignaler.Set();
-                        using (var socket = listener._socket.EndAccept(ar))
+                        try
                         {
-                            var ep = (IPEndPoint) socket.RemoteEndPoint;
-                            Util.Log(string.Format("Inbound connection from {0}", ep.Address));
-
-                            using (var connection = new NetworkConnection(socket, false))
+                            listener._acceptSignaler.Set();
+                            using (var socket = listener._socket.EndAccept(ar))
                             {
-                                connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
-                                action(connection);
-                                connection.Stream.Flush();
+                                var ep = (IPEndPoint) socket.RemoteEndPoint;
+                                Util.Log(string.Format("Inbound connection from {0}", ep.Address));
+
+                                using (var connection = new NetworkConnection(socket, false))
+                                {
+                                    connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
+                                    action(connection);
+                                    connection.Stream.Flush();
+                                }
                             }
+                        }
+                        catch (Exception ex)
+                        {
+                            Util.Log(ex.Message);
                         }
                     }, null);
 

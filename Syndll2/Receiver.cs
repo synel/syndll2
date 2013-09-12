@@ -70,9 +70,18 @@ namespace Syndll2
             _receiveBuffer.AddRange(_rawReceiveBuffer.Take(bytesRead));
 
             // Read packets from the buffer, unless there's still more on the stream to read.
-            var networkStream = _stream as NetworkStream;
-            if (networkStream == null || !networkStream.DataAvailable)
-                ReadFromBuffer();
+            try
+            {
+                var networkStream = _stream as NetworkStream;
+                if (networkStream == null || !networkStream.DataAvailable)
+                    ReadFromBuffer();
+            }
+            catch (ObjectDisposedException ex)
+            {
+                // this can happen due to dropped connection
+                Util.Log(ex.Message);
+                return;
+            }
 
             // Repeat, to continually watch the stream for incoming data.
             WatchStream();
