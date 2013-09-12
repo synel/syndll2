@@ -172,7 +172,7 @@ namespace Syndll2
 
             Util.Log("Connected!");
 
-            return new NetworkConnection(socket);
+            return new NetworkConnection(socket, true);
         }
 #endif
 
