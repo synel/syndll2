@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace Syndll2
 {
@@ -82,6 +83,9 @@ namespace Syndll2
                 Util.Log(ex.Message);
                 return;
             }
+
+            // Sleep here to not eat up too much CPU
+            Thread.Sleep(100);
 
             // Repeat, to continually watch the stream for incoming data.
             WatchStream();
