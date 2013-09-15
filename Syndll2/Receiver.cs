@@ -85,7 +85,7 @@ namespace Syndll2
             }
 
             // Sleep here to not eat up too much CPU
-            Thread.Sleep(100);
+            Thread.Sleep(10);
 
             // Repeat, to continually watch the stream for incoming data.
             WatchStream();
