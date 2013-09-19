@@ -50,15 +50,15 @@ namespace Syndll2
         {
             var listener = NetworkConnection.Listen(port, connection =>
             {
+                var signal = new ManualResetEvent(false);
+
                 // Prepare the timer for disconnect on idle timeout
                 using (var timer = new Timer(state =>
                 {
                     Util.Log("Idle Timeout");
-                    connection.Disconnect();
+                    signal.Set();
                 }, null, idleTimeout, Timeout.InfiniteTimeSpan))
                 {
-                    var signal = new ManualResetEvent(false);
-
                     var lineNeedsToBeReset = false;
 
                     var receiver = new Receiver(connection.Stream, () => connection.Connected);
