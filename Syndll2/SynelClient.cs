@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -488,9 +489,20 @@ namespace Syndll2
 
             Util.Log("Sending: " + command);
 
-            var bytes = Encoding.ASCII.GetBytes(command);
-            _connection.Stream.Write(bytes, 0, bytes.Length);
-            _connection.Stream.Flush();
+            try
+            {
+                var bytes = Encoding.ASCII.GetBytes(command);
+                _connection.Stream.Write(bytes, 0, bytes.Length);
+                _connection.Stream.Flush();
+            }
+            catch (IOException)
+            {
+                throw new InvalidOperationException("The client has disconnected.");
+            }
+            catch (ObjectDisposedException)
+            {
+                throw new InvalidOperationException("The client has disconnected.");
+            }
         }
 
 #if NET_45
@@ -506,9 +518,20 @@ namespace Syndll2
 
             Util.Log("Sending: " + command);
 
-            var bytes = Encoding.ASCII.GetBytes(command);
-            await _connection.Stream.WriteAsync(bytes, 0, bytes.Length);
-            await _connection.Stream.FlushAsync();
+            try
+            {
+                var bytes = Encoding.ASCII.GetBytes(command);
+                await _connection.Stream.WriteAsync(bytes, 0, bytes.Length);
+                await _connection.Stream.FlushAsync();
+            }
+            catch (IOException)
+            {
+                throw new InvalidOperationException("The client has disconnected.");
+            }
+            catch (ObjectDisposedException)
+            {
+                throw new InvalidOperationException("The client has disconnected.");
+            }
         }
 #endif
     }
