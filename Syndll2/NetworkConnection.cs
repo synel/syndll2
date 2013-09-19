@@ -23,7 +23,7 @@ namespace Syndll2
 
         public bool Connected
         {
-            get { return _socket != null && _socket.Connected; }
+            get { return _socket != null && _socket.Connected && _socket.IsConnected(); }
         }
 
         public IPEndPoint RemoteEndPoint

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 
@@ -33,6 +34,18 @@ namespace Syndll2
                             as DescriptionAttribute;
 
             return attribute == null ? value.ToString() : attribute.Description;
+        }
+
+        /// <summary>
+        /// Polls a socket to see if it is connected or not.
+        /// </summary>
+        public static bool IsConnected(this Socket socket)
+        {
+            try
+            {
+                return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
+            }
+            catch (SocketException) { return false; }
         }
     }
 }
