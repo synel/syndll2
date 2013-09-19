@@ -73,7 +73,6 @@ namespace Syndll2
                         catch (ObjectDisposedException)
                         {
                             // Swallow these
-                            Debug.WriteLine("XXXXXXXXXXXXXXXXXXXXX");
                         }
 
                         // Ignore any backlog of messages
