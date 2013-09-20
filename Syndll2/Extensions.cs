@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Net.Sockets;
-using System.Reflection;
 using System.Text;
 
 namespace Syndll2
@@ -45,7 +44,7 @@ namespace Syndll2
             {
                 return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
             }
-            catch (SocketException) { return false; }
+            catch (Exception) { return false; }
         }
     }
 }
