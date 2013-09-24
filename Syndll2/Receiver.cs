@@ -126,8 +126,15 @@ namespace Syndll2
                 }
 
                 // Handle the message
-                if (MessageHandler != null && _connected())
-                    MessageHandler(message);
+                try
+                {
+                    if (MessageHandler != null && _connected())
+                        MessageHandler(message);
+                }
+                catch (Exception ex)
+                {
+                    Util.Log(ex.Message);
+                }
             }
         }
     }
