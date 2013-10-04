@@ -245,6 +245,20 @@ namespace Syndll2
         /// <returns>A validated <see cref="Response"/> object.</returns>
         internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, params string[] validResponses)
         {
+            return SendAndReceive(requestCommand, dataToSend, attempts, 5000, validResponses);
+        }
+
+        /// <summary>
+        /// Communicates with the terminal by sending a request and receiving a response.
+        /// </summary>
+        /// <param name="requestCommand">The request command to send.</param>
+        /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        /// <param name="attempts">Number of times to attempt the command until receiving a response.</param>
+        /// <param name="timeoutms">The timeout, in milliseconds, to wait for a response.</param>
+        /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
+        /// <returns>A validated <see cref="Response"/> object.</returns>
+        internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, int timeoutms = 5000, params string[] validResponses)
+        {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
 
@@ -297,7 +311,7 @@ namespace Syndll2
                     Send(rawRequest);
 
                     // Wait for the response or timeout
-                    signal.WaitOne(5000);
+                    signal.WaitOne(timeoutms);
 
                     if (rawResponse != null)
                         Util.Log("Received: " + rawResponse);
