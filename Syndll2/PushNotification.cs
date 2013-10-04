@@ -95,7 +95,7 @@ namespace Syndll2
                 code < 0 ? "#" : code.ToString(CultureInfo.InvariantCulture),
                 message);
 
-            _client.SendAndReceive(RequestCommand.QueryReply, data, ACK);
+            _client.SendAndReceive(RequestCommand.QueryReply, data, 3, 300, ACK);
         }
 
         
