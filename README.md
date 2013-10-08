@@ -4,8 +4,16 @@ Syndll2
 Syndll2 is a reliable, high-performance, thread-aware implementation of the Synel Communications Protocol.
 It is used primarily for communicating with Synel time and attendance terminals, such as the SY700 series.
 
-This library supports .Net 4.0 and higher.  However, if you are using .Net 4.5, you can optionally take
+### Compatibility
+
+- This library supports .Net 4.0 and higher.  However, if you are using .Net 4.5, you can optionally take
 advantage of asynchronous methods, using async/await patterns.
+
+- It has also been tested under Mono on Linux without issue.
+
+- It does not currently support being called via COM Interop.  If you are using C++, VB6, FoxPro, or another
+  COM-based platform, then you will not be able to use this library.  You might, however, be able to interact
+  with the [SynUtil](https://github.com/synel/SynUtil) command-line wrapper via system shell calls.
 
 #### A note on thread safety
  - The library is "thread-aware" in that it can be used in a multithreaded application.
