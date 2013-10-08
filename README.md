@@ -6,8 +6,9 @@ It is used primarily for communicating with Synel time and attendance terminals,
 
 ### Compatibility
 
-- This library supports .Net 4.0 and higher.  However, if you are using .Net 4.5, you can optionally take
-advantage of asynchronous methods, using async/await patterns.
+- This library supports .Net 4.0 and higher.
+
+- If you are using .Net 4.5, you can optionally take advantage of asynchronous methods, using async/await patterns.
 
 - It has also been tested under Mono on Linux without issue.
 
