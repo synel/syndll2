@@ -1,5 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -45,6 +47,14 @@ namespace Syndll2
                 return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
             }
             catch (Exception) { return false; }
+        }
+
+        /// <summary>
+        /// Returns a value like 001.002.003.004 from an IP address.
+        /// </summary>
+        public static string ToExpandedString(this IPAddress ipAddress)
+        {
+            return string.Join(".", ipAddress.GetAddressBytes().Select(x => x.ToString("D3")));
         }
     }
 }

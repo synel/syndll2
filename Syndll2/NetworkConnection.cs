@@ -64,7 +64,7 @@ namespace Syndll2
 
         public static NetworkConnection Connect(IPEndPoint endPoint, TimeSpan timeout = default(TimeSpan))
         {
-            Util.Log("Connecting to terminal...");
+            Util.Log("Connecting to terminal...", endPoint.Address);
 
             // default timeout is five seconds
             if (timeout <= TimeSpan.Zero)
@@ -104,7 +104,7 @@ namespace Syndll2
                 throw;
             }
 
-            Util.Log("Connected!");
+            Util.Log("Connected!", endPoint.Address);
 
             return new NetworkConnection(socket, true);
         }
@@ -124,7 +124,7 @@ namespace Syndll2
 
         public static async Task<NetworkConnection> ConnectAsync(IPEndPoint endPoint, TimeSpan timeout = default(TimeSpan))
         {
-            Util.Log("Connecting to terminal...");
+            Util.Log("Connecting to terminal...", endPoint.Address);
 
             // default timeout is five seconds
             if (timeout <= TimeSpan.Zero)
@@ -170,7 +170,7 @@ namespace Syndll2
                 throw new TimeoutException("Timeout occurred while trying to connect to the terminal.");
             }
 
-            Util.Log("Connected!");
+            Util.Log("Connected!", endPoint.Address);
 
             return new NetworkConnection(socket, true);
         }
@@ -199,13 +199,15 @@ namespace Syndll2
                     listener._acceptSignaler.Reset();
                     listener._socket.BeginAccept(ar =>
                     {
+                        IPAddress address = null;
                         try
                         {
                             listener._acceptSignaler.Set();
                             using (var socket = listener._socket.EndAccept(ar))
                             {
                                 var ep = (IPEndPoint) socket.RemoteEndPoint;
-                                Util.Log(string.Format("Inbound connection from {0}", ep.Address));
+                                Util.Log("Accepted inbound connection.", ep.Address);
+                                address = ep.Address;
 
                                 using (var connection = new NetworkConnection(socket, false))
                                 {
@@ -217,7 +219,7 @@ namespace Syndll2
                         }
                         catch (Exception ex)
                         {
-                            Util.Log(ex.Message);
+                            Util.Log(ex.Message, address);
                         }
                     }, null);
 
@@ -272,12 +274,12 @@ namespace Syndll2
             {
                 if (!Connected)
                 {
-                    Util.Log("Already disconnected.");
+                    Util.Log("Already disconnected.", _remoteEndPoint.Address);
                     return;
                 }
 
                 _socket.Disconnect(false);
-                Util.Log("Disconnected.");
+                Util.Log("Disconnected.", _remoteEndPoint.Address);
             }
             catch
             {

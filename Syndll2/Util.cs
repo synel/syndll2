@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Net;
 
 namespace Syndll2
 {
@@ -83,6 +84,11 @@ namespace Syndll2
                                  .Replace(ControlChars.NACK.ToString(CultureInfo.InvariantCulture), "(NACK)");
 
             Trace.WriteLine(s);
+        }
+
+        public static void Log(string message, IPAddress address)
+        {
+            Log(address == null ? message : (address.ToExpandedString() + " " + message));
         }
     }
 }

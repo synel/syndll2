@@ -53,6 +53,20 @@ namespace Syndll2
         }
 
         /// <summary>
+        /// Gets the remote IP Address if connected via network.
+        /// </summary>
+        public IPAddress RemoteAddress
+        {
+            get
+            {
+                var endpoint = RemoteEndPoint;
+                return endpoint != null
+                    ? endpoint.Address
+                    : null;
+            }
+        }
+
+        /// <summary>
         /// Gets an accessor that exposes the operations that can be performed on the terminal.
         /// </summary>
         public TerminalOperations Terminal { get { return _terminal; } }
@@ -314,7 +328,7 @@ namespace Syndll2
                     signal.WaitOne(timeoutms);
 
                     if (rawResponse != null)
-                        Util.Log("Received: " + rawResponse);
+                        Util.Log("Received: " + rawResponse, RemoteAddress);
 
                     if (exception != null)
                         throw exception;
@@ -323,7 +337,7 @@ namespace Syndll2
                     {
                         if (i < attempts && i < MaxRetries)
                         {
-                            Util.Log("No response.  Retrying...");
+                            Util.Log("No response.  Retrying...", RemoteAddress);
                             continue;
                         }
 
@@ -339,7 +353,7 @@ namespace Syndll2
                 {
                     // swallow these until the retry limit is reached
                     if (i < MaxRetries)
-                        Util.Log("Bad CRC.  Retrying...");
+                        Util.Log("Bad CRC.  Retrying...", RemoteAddress);
                 }
             }
 
@@ -427,7 +441,7 @@ namespace Syndll2
                     signal.Release();
 
                     if (rawResponse != null)
-                        Util.Log("Received: " + rawResponse);
+                        Util.Log("Received: " + rawResponse, RemoteAddress);
 
                     if (exception != null)
                         throw exception;
@@ -436,7 +450,7 @@ namespace Syndll2
                     {
                         if (i < attempts && i < MaxRetries)
                         {
-                            Util.Log("No response.  Retrying...");
+                            Util.Log("No response.  Retrying...", RemoteAddress);
                             continue;
                         }
 
@@ -452,7 +466,7 @@ namespace Syndll2
                 {
                     // swallow these until the retry limit is reached
                     if (i < MaxRetries)
-                        Util.Log("Bad CRC.  Retrying...");
+                        Util.Log("Bad CRC.  Retrying...", RemoteAddress);
                 }
             }
 
@@ -501,7 +515,7 @@ namespace Syndll2
             if (!_connection.Stream.CanWrite)
                 throw new InvalidOperationException("The stream cannot be written to.");
 
-            Util.Log("Sending: " + command);
+            Util.Log("Sending: " + command, RemoteAddress);
 
             try
             {
@@ -530,7 +544,7 @@ namespace Syndll2
             if (!_connection.Stream.CanWrite)
                 throw new InvalidOperationException("The stream cannot be written to.");
 
-            Util.Log("Sending: " + command);
+            Util.Log("Sending: " + command, RemoteAddress);
 
             try
             {

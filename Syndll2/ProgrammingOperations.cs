@@ -103,7 +103,7 @@ namespace Syndll2
             else
             {
                 // Just upload the single RDY
-                Util.Log("Uploading " + rdy.Filename);
+                Util.Log("Uploading " + rdy.Filename, _client.RemoteEndPoint.Address);
                 UploadTableFromRdy(rdy, replace, force);
             }
         }
@@ -142,7 +142,7 @@ namespace Syndll2
             else
             {
                 // Just upload the single RDY
-                Util.Log("Uploading " + rdy.Filename);
+                Util.Log("Uploading " + rdy.Filename, _client.RemoteEndPoint.Address);
                 await UploadTableFromRdyAsync(rdy, replace, force);
             }
         }

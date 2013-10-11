@@ -97,7 +97,7 @@ namespace Syndll2
                                 // Only push valid notifications
                                 if (Enum.IsDefined(typeof(NotificationType), notification.Type))
                                 {
-                                    Util.Log(string.Format("Listener Received: {0}", message.RawResponse));
+                                    Util.Log(string.Format("Listener Received: {0}", message.RawResponse), connection.RemoteEndPoint.Address);
                                     action(notification);
                                 }
                             }
