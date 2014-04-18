@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2", "Syndll2\Syndll2.csproj", "{DEF83505-FB2D-4E8D-8BFD-BEA5C64B7486}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2.Tests", "Syndll2.Tests\Syndll2.Tests.csproj", "{94914ABC-45CE-4010-AFDE-D9B4C6467B29}"
@@ -11,29 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2_Net40", "Syndll2_Net40\Syndll2_Net40.csproj", "{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}"
-EndProject
 Global
-	GlobalSection(TeamFoundationVersionControl) = preSolution
-		SccNumberOfProjects = 3
-		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = http://tfs.corp.timeamerica.com:8081/tfs/xacttimev6
-		SccProjectUniqueName0 = Syndll2\\Syndll2.csproj
-		SccProjectName0 = Syndll2
-		SccAuxPath0 = http://tfs.corp.timeamerica.com:8081/tfs/xacttimev6
-		SccLocalPath0 = Syndll2
-		SccProvider0 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName1 = Syndll2.Tests\\Syndll2.Tests.csproj
-		SccProjectName1 = Syndll2.Tests
-		SccAuxPath1 = http://tfs.corp.timeamerica.com:8081/tfs/xacttimev6
-		SccLocalPath1 = Syndll2.Tests
-		SccProvider1 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccProjectUniqueName2 = Syndll2_Net40\\Syndll2_Net40.csproj
-		SccProjectName2 = Syndll2_Net40
-		SccAuxPath2 = http://tfs.corp.timeamerica.com:8081/tfs/xacttimev6
-		SccLocalPath2 = Syndll2_Net40
-		SccProvider2 = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -47,10 +27,6 @@ Global
 		{94914ABC-45CE-4010-AFDE-D9B4C6467B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94914ABC-45CE-4010-AFDE-D9B4C6467B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94914ABC-45CE-4010-AFDE-D9B4C6467B29}.Release|Any CPU.Build.0 = Release|Any CPU
-		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{179CF9CE-4E50-413F-99CC-29A4DE8A97FB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

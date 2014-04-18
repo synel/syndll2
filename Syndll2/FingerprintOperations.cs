@@ -29,7 +29,6 @@ namespace Syndll2
             return GetFingerprintUnitStatusResult(response);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets the fingerprint unit status from the terminal.
         /// </summary>
@@ -38,7 +37,6 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "M0", 3, "vM0");
             return GetFingerprintUnitStatusResult(response);
         }
-#endif
 
         private static FingerprintUnitStatus GetFingerprintUnitStatusResult(Response response)
         {
@@ -86,7 +84,6 @@ namespace Syndll2
             return result.ToArray();
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that gets a specific fingerprint template from the terminal.
         /// </summary>
@@ -121,7 +118,6 @@ namespace Syndll2
             }
             return result.ToArray();
         }
-#endif
         #endregion
 
         #region ListTemplates
@@ -169,7 +165,6 @@ namespace Syndll2
             }
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that lists the templates available on the terminal.
         /// </summary>
@@ -213,7 +208,6 @@ namespace Syndll2
                 response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, "vL0", "vF0");
             }
         }
-#endif
         #endregion
 
         #region PutTemplate
@@ -241,7 +235,6 @@ namespace Syndll2
                 throw new InvalidOperationException(string.Format("Could not upload fingerprint to terminal with template id {0}", templateId));
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that puts a fingerprint template onto the terminal.
         /// </summary>
@@ -265,7 +258,6 @@ namespace Syndll2
             if (response.Command != PrimaryResponseCommand.LastCommand_Or_Fingerprint || !response.Data.StartsWith("b0"))
                 throw new InvalidOperationException(string.Format("Could not upload fingerprint to terminal with template id {0}", templateId));
         }
-#endif
         #endregion
 
         #region DeleteTemplate
@@ -303,7 +295,6 @@ namespace Syndll2
             TerminalOperations.ValidateAcknowledgment(response);
         }
 
-#if NET_45
 
         /// <summary>
         /// Returns an awaitable task that deletes a specific fingerprint template (all indexes) from the terminal.
@@ -336,7 +327,6 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
-#endif
         #endregion
 
         #region DeleteAllTemplates
@@ -349,7 +339,6 @@ namespace Syndll2
             TerminalOperations.ValidateAcknowledgment(response);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that deletes all fingerprint templates from the terminal.
         /// </summary>
@@ -358,7 +347,6 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, "G@@@@@@@@@@@", 3, ACK);
             TerminalOperations.ValidateAcknowledgment(response);
         }
-#endif
         #endregion
 
         #region SetUnitMode
@@ -385,7 +373,6 @@ namespace Syndll2
             _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that sets the fingerprint unit mode on the terminal.
         /// </summary>
@@ -408,7 +395,6 @@ namespace Syndll2
             var data = string.Format("H0F{0}", val);
             await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
         }
-#endif
         #endregion
 
         #region SetThreshold
@@ -444,7 +430,6 @@ namespace Syndll2
             _client.SendAndReceive(RequestCommand.Fingerprint, data, ACK);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that sets the fingerprint threshold on the terminal.
         /// </summary>
@@ -476,7 +461,6 @@ namespace Syndll2
             var data = string.Format("H0T{0}", val);
             await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, ACK);
         }
-#endif
         #endregion
 
         #region SetEnrollMode
@@ -506,8 +490,6 @@ namespace Syndll2
             _client.SendAndReceive(RequestCommand.Fingerprint, data, 3, ACK);
         }
 
-
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that sets the fingerprint enroll mode on the terminal.
         /// </summary>
@@ -533,7 +515,6 @@ namespace Syndll2
             var data = string.Format("H0E{0}", val);
             await _client.SendAndReceiveAsync(RequestCommand.Fingerprint, data, 3, ACK);
         }
-#endif
         #endregion
 
         // ReSharper disable InconsistentNaming

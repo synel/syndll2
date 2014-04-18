@@ -109,7 +109,6 @@ namespace Syndll2
             return new NetworkConnection(socket, true);
         }
 
-#if NET_45
         public static async Task<NetworkConnection> ConnectAsync(string host, int port = 3734, TimeSpan timeout = default(TimeSpan))
         {
             var endPoint = GetEndPoint(host, port);
@@ -162,7 +161,7 @@ namespace Syndll2
                 },
                 endPoint, null);
 
-            await Task.WhenAny(connectTask, Task.Delay(timeout));
+            await TaskEx.WhenAny(connectTask, TaskEx.Delay(timeout));
             if (!socket.Connected)
             {
                 socket.Close();
@@ -174,7 +173,6 @@ namespace Syndll2
 
             return new NetworkConnection(socket, true);
         }
-#endif
 
         public static NetworkConnection Listen(Action<NetworkConnection> action)
         {

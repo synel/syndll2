@@ -11,7 +11,7 @@ namespace Syndll2
 {
     /// <summary>
     /// Provides methods for communication with a terminal that uses the Synel Communications Protocol.
-    /// Should be used from within a <code>using</code> block, or closed explicitly with the <see cref="Dispose"/> method.
+    /// Should be used from within a <code>using</code> block, or closed explicitly with the <see cref="Dispose()"/> method.
     /// </summary>
     public class SynelClient : IDisposable
     {
@@ -124,7 +124,6 @@ namespace Syndll2
             return new SynelClient(connection, terminalId);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that asynchronously connects to a terminal over TCP using the provided parameters.
         /// </summary>
@@ -162,7 +161,6 @@ namespace Syndll2
             var connection = await NetworkConnection.ConnectAsync(endPoint, timeout);
             return new SynelClient(connection, terminalId);
         }
-#endif
 
         /// <summary>
         /// Disconnects from the terminal, and releases any resources.
@@ -361,7 +359,6 @@ namespace Syndll2
             throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that communicates with the terminal by sending a request and receiving a response.
         /// </summary>
@@ -380,10 +377,24 @@ namespace Syndll2
         /// <param name="requestCommand">The request command to send.</param>
         /// <param name="dataToSend">Any data that should be sent along with the command.</param>
         /// <param name="attempts">Number of times to attempt the command until receiving a response.</param>
+        /// <param name="timeoutms">The timeout, in milliseconds, to wait for a response.</param>
         /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
         /// <returns>A task that yields a validated <see cref="Response"/> object.</returns>
-        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, int attempts = 1,
-            params string[] validResponses)
+        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, params string[] validResponses)
+        {
+            return await SendAndReceiveAsync(requestCommand, dataToSend, attempts, 5000, validResponses);
+        }
+
+        /// <summary>
+        /// Returns an awaitable task that communicates with the terminal by sending a request and receiving a response.
+        /// </summary>
+        /// <param name="requestCommand">The request command to send.</param>
+        /// <param name="dataToSend">Any data that should be sent along with the command.</param>
+        /// <param name="attempts">Number of times to attempt the command until receiving a response.</param>
+        /// <param name="timeoutms">The timeout, in milliseconds, to wait for a response.</param>
+        /// <param name="validResponses">If specified, the response must start with one of the valid responses (omit the terminal id).</param>
+        /// <returns>A task that yields a validated <see cref="Response"/> object.</returns>
+        internal async Task<Response> SendAndReceiveAsync(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, int timeoutms = 5000, params string[] validResponses)
         {
             if (!Connected)
                 throw new InvalidOperationException("Not connected!");
@@ -430,14 +441,16 @@ namespace Syndll2
                 try
                 {
                     // Reset the signal
-                    await signal.WaitAsync();
+                    //await signal.WaitAsync();
+                    signal.Wait();
 
                     // Send the request
                     var rawRequest = CreateCommand(requestCommand, dataToSend);
                     await SendAsync(rawRequest);
 
                     // Wait for the response or timeout
-                    await signal.WaitAsync(5000);
+                    //await signal.WaitAsync(5000);
+                    signal.Wait(timeoutms);
                     signal.Release();
 
                     if (rawResponse != null)
@@ -473,7 +486,6 @@ namespace Syndll2
             // We've hit the retry limit, throw a CRC exception.
             throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
         }
-#endif
 
         /// <summary>
         /// Communicates with the terminal by sending a request without waiting for a response.
@@ -489,7 +501,6 @@ namespace Syndll2
             Send(rawRequest);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that communicates with the terminal by sending a request without waiting for a response.
         /// </summary>
@@ -503,7 +514,6 @@ namespace Syndll2
             var rawRequest = CreateCommand(requestCommand, dataToSend);
             await SendAsync(rawRequest);
         }
-#endif
 
         private void Send(string command)
         {
@@ -533,7 +543,6 @@ namespace Syndll2
             }
         }
 
-#if NET_45
         private async Task SendAsync(string command)
         {
             // make sure we are connected
@@ -561,6 +570,5 @@ namespace Syndll2
                 throw new InvalidOperationException("The client has disconnected.");
             }
         }
-#endif
     }
 }

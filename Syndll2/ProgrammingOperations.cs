@@ -108,7 +108,6 @@ namespace Syndll2
             }
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that uploads an RDY file to the terminal.
         /// </summary>
@@ -146,7 +145,6 @@ namespace Syndll2
                 await UploadTableFromRdyAsync(rdy, replace, force);
             }
         }
-#endif
 
         /// <summary>
         /// Uploads a stream containing an RDY file to the terminal.
@@ -160,7 +158,6 @@ namespace Syndll2
             UploadTableFromRdy(rdy, replace, force);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that uploads a stream containing an RDY file to the terminal.
         /// </summary>
@@ -172,7 +169,6 @@ namespace Syndll2
             var rdy = RdyFile.Read(stream, force);
             await UploadTableFromRdyAsync(rdy, replace, force);
         }
-#endif
 
         /// <summary>
         /// Uploads an RDY file object to the terminal.
@@ -224,7 +220,6 @@ namespace Syndll2
             }
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that uploads an RDY file object to the terminal.
         /// </summary>
@@ -274,7 +269,6 @@ namespace Syndll2
                 await SendBlockAsync(tableType, tableId, blockNumber, totalBlocks, block, replace, rdy.Filename);
             }
         }
-#endif
 
         private void SendBlock(char tableType, int tableId, int blockNumber, int totalBlocks, string block, bool replace, string filename)
         {
@@ -292,7 +286,6 @@ namespace Syndll2
             OnProgressChanged(new UploadProgressChangedEventArgs(blockNumber, totalBlocks, filename));
         }
 
-#if NET_45
         private async Task SendBlockAsync(char tableType, int tableId, int blockNumber, int totalBlocks, string block, bool replace, string filename)
         {
             var data = tableType +
@@ -308,7 +301,6 @@ namespace Syndll2
 
             OnProgressChanged(new UploadProgressChangedEventArgs(blockNumber, totalBlocks, filename));
         }
-#endif
 
         private static void ValidateSendBlockResult(Response response)
         {
@@ -357,7 +349,6 @@ namespace Syndll2
             ValidateDeleteTableResult(response);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that deletes a specific table from the terminal.
         /// </summary>
@@ -373,7 +364,6 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, data, "t");
             ValidateDeleteTableResult(response);
         }
-#endif
 
         private static void ValidateDeleteTableResult(Response response)
         {
@@ -405,7 +395,6 @@ namespace Syndll2
             ValidateDeleteTableResult(response);
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that deletes ALL tables from the terminal.
         /// </summary>
@@ -414,7 +403,6 @@ namespace Syndll2
             var response = await _client.SendAndReceiveAsync(RequestCommand.TableOperation, "@@@@D", "t");
             ValidateDeleteTableResult(response);
         }
-#endif
         #endregion
 
         #region FixMemCrash
@@ -427,7 +415,6 @@ namespace Syndll2
             // no ack
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that erases all terminal memory, returning a terminal in the "Mem Crash" state to "No Prog".
         /// </summary>
@@ -436,7 +423,6 @@ namespace Syndll2
             await _client.SendOnlyAsync(RequestCommand.SystemCommands, "F");
             // no ack
         }
-#endif
         #endregion
     }
 }

@@ -153,7 +153,6 @@ namespace Syndll2.Data
             return rdy;
         }
 
-#if NET_45
         /// <summary>
         /// Returns an awaitable task that reads an RDY file from an input stream.
         /// </summary>
@@ -193,7 +192,6 @@ namespace Syndll2.Data
 
             return rdy;
         }
-#endif
 
         private void ReadBody(StreamReader reader, bool force)
         {
@@ -228,7 +226,6 @@ namespace Syndll2.Data
                                                              Records.Count));
         }
 
-#if NET_45
         private async Task ReadBodyAsync(StreamReader reader, bool force)
         {
             // Initialize a new list of records
@@ -261,7 +258,6 @@ namespace Syndll2.Data
                 throw new InvalidDataException(string.Format("The RDY header reported {0} records, but {1} records were in the RDY file.", Header.RecordCount,
                                                              Records.Count));
         }
-#endif
 
         private void ReadDirBody(StreamReader reader)
         {
@@ -291,7 +287,6 @@ namespace Syndll2.Data
             }
         }
 
-#if NET_45
         private async Task ReadDirBodyAsync(StreamReader reader)
         {
             // Initialize a new list of records
@@ -319,7 +314,6 @@ namespace Syndll2.Data
                 _buffer.Remove(0, terminator.Length);
             }
         }
-#endif
 
         private void ReadLineToBuffer(StreamReader reader)
         {
@@ -334,7 +328,6 @@ namespace Syndll2.Data
             _buffer.Append(line);
         }
 
-#if NET_45
         private async Task ReadLineToBufferAsync(StreamReader reader)
         {
             // read a line
@@ -347,7 +340,6 @@ namespace Syndll2.Data
             // add the data to the buffer
             _buffer.Append(line);
         }
-#endif
 
         private string ReadHeader(StreamReader reader)
         {
@@ -364,7 +356,6 @@ namespace Syndll2.Data
             throw new InvalidDataException(string.Format("Premature end of stream at position {0}.", _buffer.Length));
         }
 
-#if NET_45
         private async Task<string> ReadHeaderAsync(StreamReader reader)
         {
             while (!reader.EndOfStream)
@@ -379,7 +370,6 @@ namespace Syndll2.Data
 
             throw new InvalidDataException(string.Format("Premature end of stream at position {0}.", _buffer.Length));
         }
-#endif
 
         public override string ToString()
         {

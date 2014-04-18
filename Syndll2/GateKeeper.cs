@@ -45,7 +45,6 @@ namespace Syndll2
             }
         }
 
-#if NET_45
         public static async Task EnterAsync(IPEndPoint endPoint, TimeSpan timeout)
         {
             if (endPoint == null)
@@ -69,10 +68,9 @@ namespace Syndll2
                 }
 
                 // This delay is essential to keep the loop from eating up too many CPU cycles
-                await Task.Delay(10);
+                await TaskEx.Delay(10);
             }
         }
-#endif
 
         public static void Exit(IPEndPoint endPoint)
         {
