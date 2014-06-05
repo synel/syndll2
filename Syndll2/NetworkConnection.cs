@@ -223,7 +223,7 @@ namespace Syndll2
 
                     listener._acceptSignaler.WaitOne();
                 }
-            });
+            }, TaskCreationOptions.LongRunning);
 
             return listener;
         }
