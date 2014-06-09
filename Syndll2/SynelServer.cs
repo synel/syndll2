@@ -5,13 +5,8 @@ namespace Syndll2
 {
     public class SynelServer : IDisposable
     {
-        private readonly IConnection _connection;
+        private IConnection _connection;
         private bool _disposed;
-
-        private SynelServer(IConnection connection)
-        {
-            _connection = connection;
-        }
 
         public void Dispose()
         {
@@ -23,31 +18,33 @@ namespace Syndll2
             if (_disposed)
                 return;
 
-            if (disposing)
+            if (disposing && _connection != null)
+            {
                 _connection.Dispose();
+            }
 
             _disposed = true;
         }
 
-        public static SynelServer Listen(Action<PushNotification> action)
+        public void Listen(Action<PushNotification> action)
         {
-            return Listen(3734, action);
+            Listen(3734, action);
         }
 
-        public static SynelServer Listen(TimeSpan idleTimeout, Action<PushNotification> action)
+        public void Listen(TimeSpan idleTimeout, Action<PushNotification> action)
         {
-            return Listen(3734, idleTimeout, action);
+            Listen(3734, idleTimeout, action);
         }
 
-        public static SynelServer Listen(int port, Action<PushNotification> action)
+        public void Listen(int port, Action<PushNotification> action)
         {
             var idleTimeout = TimeSpan.FromSeconds(3);
-            return Listen(3734, idleTimeout, action);
+            Listen(3734, idleTimeout, action);
         }
 
-        public static SynelServer Listen(int port, TimeSpan idleTimeout, Action<PushNotification> action)
+        public void Listen(int port, TimeSpan idleTimeout, Action<PushNotification> action)
         {
-            var listener = NetworkConnection.Listen(port, connection =>
+            _connection = NetworkConnection.Listen(port, connection =>
             {
                 var signal = new ManualResetEvent(false);
 
@@ -113,7 +110,6 @@ namespace Syndll2
                             break;
                 }
             });
-            return new SynelServer(listener);
         }
     }
 }
