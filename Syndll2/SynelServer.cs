@@ -5,8 +5,14 @@ namespace Syndll2
 {
     public class SynelServer : IDisposable
     {
+        private readonly int _port;
         private IConnection _connection;
         private bool _disposed;
+
+        public SynelServer(int port = 3734)
+        {
+            _port = port;
+        }
 
         public void Dispose()
         {
@@ -28,23 +34,13 @@ namespace Syndll2
 
         public void Listen(Action<PushNotification> action)
         {
-            Listen(3734, action);
+            var idleTimeout = TimeSpan.FromSeconds(3);
+            Listen(idleTimeout, action);
         }
 
         public void Listen(TimeSpan idleTimeout, Action<PushNotification> action)
         {
-            Listen(3734, idleTimeout, action);
-        }
-
-        public void Listen(int port, Action<PushNotification> action)
-        {
-            var idleTimeout = TimeSpan.FromSeconds(3);
-            Listen(3734, idleTimeout, action);
-        }
-
-        public void Listen(int port, TimeSpan idleTimeout, Action<PushNotification> action)
-        {
-            _connection = NetworkConnection.Listen(port, connection =>
+            _connection = NetworkConnection.Listen(_port, connection =>
             {
                 var signal = new ManualResetEvent(false);
 
