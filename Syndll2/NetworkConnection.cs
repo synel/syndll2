@@ -190,16 +190,13 @@ namespace Syndll2
                         if (socket == null)
                             return;
 
-                        IPAddress address = null;
+                        var address = ((IPEndPoint) socket.RemoteEndPoint).Address;
+                        Util.Log("Accepted inbound connection.", address);
+
                         try
                         {
-                            var ep = (IPEndPoint) socket.RemoteEndPoint;
-                            Util.Log("Accepted inbound connection.", ep.Address);
-                            address = ep.Address;
-
                             using (var connection = new NetworkConnection(socket, false))
                             {
-                                connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
                                 action(connection);
                                 connection.Stream.Flush();
                             }
