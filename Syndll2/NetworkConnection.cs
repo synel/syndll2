@@ -15,7 +15,6 @@ namespace Syndll2
     {
         private readonly Socket _socket;
         private readonly Stream _stream;
-        private readonly ManualResetEvent _acceptSignaler = new ManualResetEvent(false);
         private IPEndPoint _remoteEndPoint;
         private bool _disposed;
         private bool _useGateKeeper;
@@ -174,34 +173,27 @@ namespace Syndll2
             return new NetworkConnection(socket, true);
         }
 
-        public static NetworkConnection Listen(Action<NetworkConnection> action)
+        public static void Listen(int port, Action<NetworkConnection> action, CancellationToken ct)
         {
-            return Listen(3734, action);
-        }
-
-        public static NetworkConnection Listen(int port, Action<NetworkConnection> action)
-        {
-            var listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            var listener = new NetworkConnection(listenerSocket, false);
-
-            var localEndPoint = new IPEndPoint(IPAddress.Any, port);
-            listener._socket.Bind(localEndPoint);
-            listener._socket.Listen(100);
-
-            Util.Log("Listening for inbound connections.");
-
-            Task.Factory.StartNew(() =>
+            using (var listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
+            using (var acceptSignaler = new ManualResetEvent(false))
             {
-                while (!listener._disposed)
+                var localEndPoint = new IPEndPoint(IPAddress.Any, port);
+                listenerSocket.Bind(localEndPoint);
+                listenerSocket.Listen(100);
+
+                Util.Log("Listening for inbound connections.");
+
+                while (!ct.IsCancellationRequested)
                 {
-                    listener._acceptSignaler.Reset();
-                    listener._socket.BeginAccept(ar =>
+                    acceptSignaler.Reset();
+                    listenerSocket.BeginAccept(ar =>
                     {
                         IPAddress address = null;
                         try
                         {
-                            listener._acceptSignaler.Set();
-                            using (var socket = listener._socket.EndAccept(ar))
+                            acceptSignaler.Set();
+                            using (var socket = listenerSocket.EndAccept(ar))
                             {
                                 var ep = (IPEndPoint) socket.RemoteEndPoint;
                                 Util.Log("Accepted inbound connection.", ep.Address);
@@ -221,11 +213,9 @@ namespace Syndll2
                         }
                     }, null);
 
-                    listener._acceptSignaler.WaitOne();
+                    acceptSignaler.WaitOne();
                 }
-            }, TaskCreationOptions.LongRunning);
-
-            return listener;
+            }
         }
 
         internal static IPEndPoint GetEndPoint(string host, int port)
@@ -307,7 +297,6 @@ namespace Syndll2
                 if (_stream != null)
                     _stream.Dispose();
                 _socket.Dispose();
-                _acceptSignaler.Dispose();
             }
 
             _disposed = true;

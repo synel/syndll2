@@ -25,7 +25,7 @@ namespace Syndll2
         
         public void Listen(CancellationToken ct)
         {
-            using (NetworkConnection.Listen(_port, connection =>
+            NetworkConnection.Listen(_port, connection =>
             {
                 var signal = new ManualResetEvent(false);
 
@@ -91,13 +91,7 @@ namespace Syndll2
                         if (signal.WaitOne(100))
                             break;
                 }
-            }))
-            {
-                while (!ct.IsCancellationRequested)
-                {
-                    Thread.Sleep(100);
-                }
-            }
+            }, ct);
         }
     }
 }
