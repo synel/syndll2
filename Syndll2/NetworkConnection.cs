@@ -173,10 +173,9 @@ namespace Syndll2
             return new NetworkConnection(socket, true);
         }
 
-        public static void Listen(int port, Action<NetworkConnection> action, CancellationToken ct)
+        public static async Task ListenAsync(int port, Action<NetworkConnection> action, CancellationToken ct)
         {
             using (var listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
-            using (var acceptSignaler = new ManualResetEvent(false))
             {
                 var localEndPoint = new IPEndPoint(IPAddress.Any, port);
                 listenerSocket.Bind(localEndPoint);
@@ -186,34 +185,30 @@ namespace Syndll2
 
                 while (!ct.IsCancellationRequested)
                 {
-                    acceptSignaler.Reset();
-                    listenerSocket.BeginAccept(ar =>
+                    using (var socket = await listenerSocket.AcceptAsync())
                     {
+                        if (socket == null)
+                            return;
+
                         IPAddress address = null;
                         try
                         {
-                            acceptSignaler.Set();
-                            using (var socket = listenerSocket.EndAccept(ar))
-                            {
-                                var ep = (IPEndPoint) socket.RemoteEndPoint;
-                                Util.Log("Accepted inbound connection.", ep.Address);
-                                address = ep.Address;
+                            var ep = (IPEndPoint) socket.RemoteEndPoint;
+                            Util.Log("Accepted inbound connection.", ep.Address);
+                            address = ep.Address;
 
-                                using (var connection = new NetworkConnection(socket, false))
-                                {
-                                    connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
-                                    action(connection);
-                                    connection.Stream.Flush();
-                                }
+                            using (var connection = new NetworkConnection(socket, false))
+                            {
+                                connection._remoteEndPoint = (IPEndPoint) socket.RemoteEndPoint;
+                                action(connection);
+                                connection.Stream.Flush();
                             }
                         }
                         catch (Exception ex)
                         {
                             Util.Log(ex.Message, address);
                         }
-                    }, null);
-
-                    acceptSignaler.WaitOne();
+                    }
                 }
             }
         }

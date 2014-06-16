@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Syndll2
 {
@@ -23,9 +24,9 @@ namespace Syndll2
                 handler(this, args);
         }
         
-        public void Listen(CancellationToken ct)
+        public Task ListenAsync(CancellationToken ct)
         {
-            NetworkConnection.Listen(_port, connection =>
+            return NetworkConnection.ListenAsync(_port, connection =>
             {
                 var signal = new ManualResetEvent(false);
 

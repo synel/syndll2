@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Syndll2
 {
@@ -55,6 +56,11 @@ namespace Syndll2
         public static string ToExpandedString(this IPAddress ipAddress)
         {
             return string.Join(".", ipAddress.GetAddressBytes().Select(x => x.ToString("D3")));
+        }
+
+        public static Task<Socket> AcceptAsync(this Socket socket)
+        {
+            return Task.Factory.FromAsync<Socket>(socket.BeginAccept, socket.EndAccept, null);
         }
     }
 }
