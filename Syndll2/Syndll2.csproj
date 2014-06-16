@@ -63,6 +63,7 @@
     <Compile Include="Data\ClockTransition.cs" />
     <Compile Include="Data\ReadOnlyDictionary.cs" />
     <Compile Include="Data\SystemParameters.cs" />
+    <Compile Include="MessageReceivedEventArgs.cs" />
     <Compile Include="NotificationType.cs" />
     <Compile Include="Receiver.cs" />
     <Compile Include="PushNotification.cs" />

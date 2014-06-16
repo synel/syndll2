@@ -34,7 +34,17 @@ namespace Syndll2
             _disposed = true;
         }
 
-        public void Listen(Action<PushNotification> action)
+        
+        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
+
+        protected virtual void OnMessageReceived(MessageReceivedEventArgs args)
+        {
+            var handler = MessageReceived;
+            if (handler != null)
+                handler(this, args);
+        }
+        
+        public void Listen()
         {
             _connection = NetworkConnection.Listen(_port, connection =>
             {
@@ -87,7 +97,7 @@ namespace Syndll2
                                 if (Enum.IsDefined(typeof(NotificationType), notification.Type))
                                 {
                                     Util.Log(string.Format("Listener Received: {0}", message.RawResponse), connection.RemoteEndPoint.Address);
-                                    action(notification);
+                                    OnMessageReceived(new MessageReceivedEventArgs {Notification = notification});
                                 }
                             }
                         }
