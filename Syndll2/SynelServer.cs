@@ -3,37 +3,16 @@ using System.Threading;
 
 namespace Syndll2
 {
-    public class SynelServer : IDisposable
+    public class SynelServer
     {
         private readonly int _port;
         private readonly TimeSpan _idleTimeout;
-        private IConnection _connection;
-        private bool _disposed;
-
+        
         public SynelServer(int port = 3734, int idleTimeoutSeconds = 3)
         {
             _port = port;
             _idleTimeout = TimeSpan.FromSeconds(idleTimeoutSeconds);
         }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_disposed)
-                return;
-
-            if (disposing && _connection != null)
-            {
-                _connection.Dispose();
-            }
-
-            _disposed = true;
-        }
-
         
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
 
@@ -44,9 +23,9 @@ namespace Syndll2
                 handler(this, args);
         }
         
-        public void Listen()
+        public void Listen(CancellationToken ct)
         {
-            _connection = NetworkConnection.Listen(_port, connection =>
+            using (NetworkConnection.Listen(_port, connection =>
             {
                 var signal = new ManualResetEvent(false);
 
@@ -94,9 +73,10 @@ namespace Syndll2
                                 var notification = new PushNotification(client, message.Response);
 
                                 // Only push valid notifications
-                                if (Enum.IsDefined(typeof(NotificationType), notification.Type))
+                                if (Enum.IsDefined(typeof (NotificationType), notification.Type))
                                 {
-                                    Util.Log(string.Format("Listener Received: {0}", message.RawResponse), connection.RemoteEndPoint.Address);
+                                    Util.Log(string.Format("Listener Received: {0}", message.RawResponse),
+                                        connection.RemoteEndPoint.Address);
                                     OnMessageReceived(new MessageReceivedEventArgs {Notification = notification});
                                 }
                             }
@@ -111,7 +91,13 @@ namespace Syndll2
                         if (signal.WaitOne(100))
                             break;
                 }
-            });
+            }))
+            {
+                while (!ct.IsCancellationRequested)
+                {
+                    Thread.Sleep(100);
+                }
+            }
         }
     }
 }
