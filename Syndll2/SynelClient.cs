@@ -16,7 +16,6 @@ namespace Syndll2
     public class SynelClient : IDisposable
     {
         private readonly IConnection _connection;
-        private readonly Receiver _receiver;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
         private bool _disposed;
@@ -80,7 +79,6 @@ namespace Syndll2
             _terminalId = terminalId;
             _connection = connection;
             _terminal = new TerminalOperations(this);
-            _receiver = new Receiver(connection.Stream);
         }
 
         /// <summary>
@@ -318,6 +316,8 @@ namespace Syndll2
                 validResponses = validResponses.Select(x => x.Insert(1, tid)).ToArray();
             }
 
+            var receiver = new Receiver(_connection.Stream);
+
             // retry loop
             for (int i = 1; i <= MaxRetries; i++)
             {
@@ -331,7 +331,7 @@ namespace Syndll2
                         await SendAsync(rawRequest);
 
                         // Wait for the response or timeout
-                        var message = await _receiver.ReceiveMessageAsync(cts.Token);
+                        var message = await receiver.ReceiveMessageAsync(cts.Token);
                         if (message == null)
                             continue;
 
