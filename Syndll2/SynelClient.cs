@@ -19,7 +19,6 @@ namespace Syndll2
         private readonly Receiver _receiver;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
-        private readonly bool _reuseConnection;
         private bool _disposed;
 
         /// <summary>
@@ -72,14 +71,13 @@ namespace Syndll2
         public TerminalOperations Terminal { get { return _terminal; } }
 
 
-        internal SynelClient(IConnection connection, int terminalId, bool reuseConnection = false)
+        internal SynelClient(IConnection connection, int terminalId)
         {
             if (terminalId > 31)
                 throw new ArgumentOutOfRangeException("terminalId", terminalId,
                     "The terminal ID must be between 0 and 31.");
 
             _terminalId = terminalId;
-            _reuseConnection = reuseConnection;
             _connection = connection;
             _terminal = new TerminalOperations(this);
             _receiver = new Receiver(connection.Stream, () => connection.Connected);
@@ -175,7 +173,7 @@ namespace Syndll2
             if (_disposed)
                 return;
 
-            if (disposing && !_reuseConnection)
+            if (disposing)
                 _connection.Dispose();
 
             _disposed = true;
