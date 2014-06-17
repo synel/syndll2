@@ -39,7 +39,7 @@ namespace Syndll2
                 {
                     while (connection.Connected && !cts.Token.IsCancellationRequested)
                     {
-                        var receiver = new AsyncReceiver(connection.Stream);
+                        var receiver = new Receiver(connection.Stream);
                         var message = await receiver.ReceiveMessageAsync(cts.Token);
                         if (message == null)
                             return;

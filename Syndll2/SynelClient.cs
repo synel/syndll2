@@ -16,7 +16,7 @@ namespace Syndll2
     public class SynelClient : IDisposable
     {
         private readonly IConnection _connection;
-        private readonly AsyncReceiver _receiver;
+        private readonly Receiver _receiver;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
         private bool _disposed;
@@ -80,7 +80,7 @@ namespace Syndll2
             _terminalId = terminalId;
             _connection = connection;
             _terminal = new TerminalOperations(this);
-            _receiver = new AsyncReceiver(connection.Stream);
+            _receiver = new Receiver(connection.Stream);
         }
 
         /// <summary>
