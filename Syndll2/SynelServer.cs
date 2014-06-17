@@ -14,7 +14,7 @@ namespace Syndll2
             _port = port;
             _idleTimeout = TimeSpan.FromSeconds(idleTimeoutSeconds);
         }
-        
+
         public event EventHandler<MessageReceivedEventArgs> MessageReceived;
 
         protected virtual void OnMessageReceived(MessageReceivedEventArgs args)
@@ -26,71 +26,58 @@ namespace Syndll2
         
         public Task ListenAsync(CancellationToken ct)
         {
-            return NetworkConnection.ListenAsync(_port, connection =>
+            return NetworkConnection.ListenAsync(_port, async connection =>
             {
-                var signal = new ManualResetEvent(false);
-
-                // Prepare the timer for disconnect on idle timeout
+                var lineNeedsToBeReset = false;
+                
+                var cts = new CancellationTokenSource();
                 using (var timer = new Timer(state =>
                 {
                     Util.Log("Idle Timeout");
-                    signal.Set();
+                    cts.Cancel();
                 }, null, _idleTimeout, Timeout.InfiniteTimeSpan))
                 {
-                    var lineNeedsToBeReset = false;
-
-                    var receiver = new Receiver(connection.Stream, () => connection.Connected);
-                    receiver.MessageHandler = message =>
+                    while (connection.Connected && !cts.Token.IsCancellationRequested)
                     {
+                        var receiver = new AsyncReceiver(connection.Stream);
+                        var message = await receiver.ReceiveMessageAsync(cts.Token);
+                        if (message == null)
+                            return;
+
                         // Stop the idle timeout timer, since we have data
-                        try
-                        {
-                            // ReSharper disable once AccessToDisposedClosure
-                            timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-                        }
-                        catch (ObjectDisposedException)
-                        {
-                            // Swallow these
-                        }
+                        timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
 
                         // Ignore any backlog of messages
                         if (!message.LastInBuffer)
                         {
                             lineNeedsToBeReset = true;
-                            return;
+                            continue;
                         }
 
-                        if (message.Response != null)
+                        // Make sure a good message came through
+                        if (message.Response == null)
+                            continue;
+
+                        using (var client = new SynelClient(connection, message.Response.TerminalId))
                         {
-                            using (var client = new SynelClient(connection, message.Response.TerminalId, true))
+                            // Reset the line if we detected a backlog earlier
+                            if (lineNeedsToBeReset)
                             {
-                                // Reset the line if we detected a backlog earlier
-                                if (lineNeedsToBeReset)
-                                {
-                                    client.Terminal.ResetLine();
-                                    lineNeedsToBeReset = false;
-                                }
+                                client.Terminal.ResetLine();
+                                lineNeedsToBeReset = false;
+                            }
 
-                                var notification = new PushNotification(client, message.Response);
+                            var notification = new PushNotification(client, message.Response);
 
-                                // Only push valid notifications
-                                if (Enum.IsDefined(typeof (NotificationType), notification.Type))
-                                {
-                                    Util.Log(string.Format("Listener Received: {0}", message.RawResponse),
-                                        connection.RemoteEndPoint.Address);
-                                    OnMessageReceived(new MessageReceivedEventArgs {Notification = notification});
-                                }
+                            // Only push valid notifications
+                            if (Enum.IsDefined(typeof (NotificationType), notification.Type))
+                            {
+                                Util.Log(string.Format("Listener Received: {0}", message.RawResponse), connection.RemoteEndPoint.Address);
+
+                                OnMessageReceived(new MessageReceivedEventArgs {Notification = notification});
                             }
                         }
-                        signal.Set();
-                    };
-
-                    receiver.WatchStream();
-
-                    // Wait until a message is received
-                    while (connection.Stream.CanRead && connection.Connected)
-                        if (signal.WaitOne(100))
-                            break;
+                    }
                 }
             }, ct);
         }

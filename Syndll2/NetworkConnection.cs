@@ -173,7 +173,7 @@ namespace Syndll2
             return new NetworkConnection(socket, true);
         }
 
-        public static async Task ListenAsync(int port, Action<NetworkConnection> action, CancellationToken ct)
+        public static async Task ListenAsync(int port, Func<NetworkConnection, Task> asyncAction, CancellationToken ct)
         {
             using (var listenerSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
@@ -197,7 +197,7 @@ namespace Syndll2
                         {
                             using (var connection = new NetworkConnection(socket, false))
                             {
-                                action(connection);
+                                await asyncAction(connection);
                                 connection.Stream.Flush();
                             }
                         }
