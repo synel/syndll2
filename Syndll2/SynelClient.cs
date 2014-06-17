@@ -16,7 +16,7 @@ namespace Syndll2
     public class SynelClient : IDisposable
     {
         private readonly IConnection _connection;
-        private readonly Receiver _receiver;
+        private readonly AsyncReceiver _receiver;
         private readonly TerminalOperations _terminal;
         private readonly int _terminalId;
         private bool _disposed;
@@ -80,8 +80,7 @@ namespace Syndll2
             _terminalId = terminalId;
             _connection = connection;
             _terminal = new TerminalOperations(this);
-            _receiver = new Receiver(connection.Stream, () => connection.Connected);
-            _receiver.WatchStream();
+            _receiver = new AsyncReceiver(connection.Stream);
         }
 
         /// <summary>
@@ -269,92 +268,7 @@ namespace Syndll2
         /// <returns>A validated <see cref="Response"/> object.</returns>
         internal Response SendAndReceive(RequestCommand requestCommand, string dataToSend = null, int attempts = 1, int timeoutms = 5000, params string[] validResponses)
         {
-            if (!Connected)
-                throw new InvalidOperationException("Not connected!");
-
-            // augment valid responses with the terminal id
-            if (validResponses.Length > 0)
-            {
-                var tid = Util.TerminalIdToChar(_terminalId).ToString(CultureInfo.InvariantCulture);
-                validResponses = validResponses.Select(x => x.Insert(1, tid)).ToArray();
-            }
-
-            // Setup the receive event handler
-            var signal = new ManualResetEvent(false);
-            string rawResponse = null;
-            Response response = null;
-            Exception exception = null;
-
-            _receiver.MessageHandler = message =>
-            {
-                if (!string.IsNullOrEmpty(message.RawResponse))
-                {
-                    // Don't ever handle host query responses here.
-                    if (message.RawResponse[0] == 'q')
-                        return;
-
-                    // If the valid list is populated, don't handle responses that aren't in it.
-                    if (validResponses.Length > 0 && !validResponses.Any(x => message.RawResponse.StartsWith(x)))
-                        return;
-
-                    // Ignore responses intended for other terminals
-                    if (message.Response != null && message.Response.TerminalId != _terminalId)
-                        return;
-                }
-
-                rawResponse = message.RawResponse;
-                response = message.Response;
-                exception = message.Exception;
-                signal.Set();
-            };
-
-            // retry loop
-            for (int i = 1; i <= MaxRetries; i++)
-            {
-                try
-                {
-                    // Reset the signal
-                    signal.Reset();
-
-                    // Send the request
-                    var rawRequest = CreateCommand(requestCommand, dataToSend);
-                    Send(rawRequest);
-
-                    // Wait for the response or timeout
-                    signal.WaitOne(timeoutms);
-
-                    if (rawResponse != null)
-                        Util.Log("Received: " + rawResponse, RemoteAddress);
-
-                    if (exception != null)
-                        throw exception;
-
-                    if (response == null)
-                    {
-                        if (i < attempts && i < MaxRetries)
-                        {
-                            Util.Log("No response.  Retrying...", RemoteAddress);
-                            continue;
-                        }
-
-                        throw new TimeoutException("No response received from the terminal.");
-                    }
-
-                    // detach the message handler
-                    _receiver.MessageHandler = null;
-
-                    return response;
-                }
-                catch (InvalidCrcException)
-                {
-                    // swallow these until the retry limit is reached
-                    if (i < MaxRetries)
-                        Util.Log("Bad CRC.  Retrying...", RemoteAddress);
-                }
-            }
-
-            // We've hit the retry limit, throw a CRC exception.
-            throw new InvalidCrcException(string.Format("Retried the operation {0} times, but still got CRC errors.", MaxRetries));
+            return SendAndReceiveAsync(requestCommand, dataToSend, attempts, timeoutms, validResponses).Result;
         }
 
         /// <summary>
@@ -404,74 +318,57 @@ namespace Syndll2
                 validResponses = validResponses.Select(x => x.Insert(1, tid)).ToArray();
             }
 
-            // Setup the receive event handler
-            var signal = new SemaphoreSlim(1);
-            string rawResponse = null;
-            Response response = null;
-            Exception exception = null;
-
-            _receiver.MessageHandler = message =>
-            {
-                if (!string.IsNullOrEmpty(message.RawResponse))
-                {
-                    // Don't ever handle host query responses here.
-                    if (message.RawResponse[0] == 'q')
-                        return;
-
-                    // If the valid list is populated, don't handle responses that aren't in it.
-                    if (validResponses.Length > 0 && !validResponses.Any(x => message.RawResponse.StartsWith(x)))
-                        return;
-
-                    // Ignore responses intended for other terminals
-                    if (message.Response != null && message.Response.TerminalId != _terminalId)
-                        return;
-                }
-
-                rawResponse = message.RawResponse;
-                response = message.Response;
-                exception = message.Exception;
-                signal.Release();
-            };
-
             // retry loop
             for (int i = 1; i <= MaxRetries; i++)
             {
                 try
                 {
-                    // Reset the signal
-                    //await signal.WaitAsync();
-                    signal.Wait();
-
-                    // Send the request
-                    var rawRequest = CreateCommand(requestCommand, dataToSend);
-                    await SendAsync(rawRequest);
-
-                    // Wait for the response or timeout
-                    //await signal.WaitAsync(5000);
-                    signal.Wait(timeoutms);
-                    signal.Release();
-
-                    if (rawResponse != null)
-                        Util.Log("Received: " + rawResponse, RemoteAddress);
-
-                    if (exception != null)
-                        throw exception;
-
-                    if (response == null)
+                    var cts = new CancellationTokenSource();
+                    using (var timer = new Timer(state => cts.Cancel(), null, timeoutms, Timeout.Infinite))
                     {
-                        if (i < attempts && i < MaxRetries)
-                        {
-                            Util.Log("No response.  Retrying...", RemoteAddress);
+                        // Send the request
+                        var rawRequest = CreateCommand(requestCommand, dataToSend);
+                        await SendAsync(rawRequest);
+
+                        // Wait for the response or timeout
+                        var message = await _receiver.ReceiveMessageAsync(cts.Token);
+                        if (message == null)
                             continue;
+
+                        // Stop the idle timeout timer, since we have data
+                        timer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+                        // Don't ever handle host query responses here.
+                        if (message.RawResponse[0] == 'q')
+                            continue;
+
+                        // If the valid list is populated, don't handle responses that aren't in it.
+                        if (validResponses.Length > 0 && !validResponses.Any(x => message.RawResponse.StartsWith(x)))
+                            continue;
+
+                        // Ignore responses intended for other terminals
+                        if (message.Response != null && message.Response.TerminalId != _terminalId)
+                            continue;
+
+                        if (message.RawResponse != null)
+                            Util.Log("Received: " + message.RawResponse, RemoteAddress);
+
+                        if (message.Exception != null)
+                            throw message.Exception;
+
+                        if (message.Response == null)
+                        {
+                            if (i < attempts && i < MaxRetries)
+                            {
+                                Util.Log("No response.  Retrying...", RemoteAddress);
+                                continue;
+                            }
+
+                            throw new TimeoutException("No response received from the terminal.");
                         }
 
-                        throw new TimeoutException("No response received from the terminal.");
+                        return message.Response;
                     }
-
-                    // detach the message handler
-                    _receiver.MessageHandler = null;
-
-                    return response;
                 }
                 catch (InvalidCrcException)
                 {
@@ -492,11 +389,7 @@ namespace Syndll2
         /// <param name="dataToSend">Any data that should be sent along with the command.</param>
         internal void SendOnly(RequestCommand requestCommand, string dataToSend = null)
         {
-            if (!Connected)
-                throw new InvalidOperationException("Not connected!");
-
-            var rawRequest = CreateCommand(requestCommand, dataToSend);
-            Send(rawRequest);
+            SendOnlyAsync(requestCommand, dataToSend).Wait();
         }
 
         /// <summary>
@@ -513,33 +406,6 @@ namespace Syndll2
             await SendAsync(rawRequest);
         }
 
-        private void Send(string command)
-        {
-            // make sure we are connected
-            if (!Connected)
-                throw new InvalidOperationException("The client is not connected.");
-
-            // make sure the stream is ready for writing
-            if (!_connection.Stream.CanWrite)
-                throw new InvalidOperationException("The stream cannot be written to.");
-
-            Util.Log("Sending: " + command, RemoteAddress);
-
-            try
-            {
-                var bytes = Encoding.ASCII.GetBytes(command);
-                _connection.Stream.Write(bytes, 0, bytes.Length);
-                _connection.Stream.Flush();
-            }
-            catch (IOException)
-            {
-                throw new InvalidOperationException("The client has disconnected.");
-            }
-            catch (ObjectDisposedException)
-            {
-                throw new InvalidOperationException("The client has disconnected.");
-            }
-        }
 
         private async Task SendAsync(string command)
         {
