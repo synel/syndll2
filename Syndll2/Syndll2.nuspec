@@ -12,9 +12,8 @@
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <tags>synel syndll SY700 SY777 SY785 TA777 TA785</tags>
     <iconUrl>https://en.gravatar.com/userimage/50232432/0a971e5a6289c7f0152793490b64891b.png</iconUrl>
+    <dependencies>
+      <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
+    </dependencies>
   </metadata>
-  <files>
-    <file src="bin\debug\Syndll2.pdb" target="lib\net45"/>
-    <file src="..\Syndll2_Net40\bin\debug\Syndll2.*" target="lib\net40"/>
-  </files>
 </package>
