@@ -6,14 +6,13 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("Synel Communications Protocol Client Library")]
 [assembly: AssemblyCompany("Synel Industries Ltd.")]
 [assembly: AssemblyProduct("Syndll2")]
-[assembly: AssemblyCopyright("Copyright © 2013, Synel Industries Ltd.")]
+[assembly: AssemblyCopyright("Copyright © 2014, Synel Industries Ltd.")]
 
 [assembly: ComVisible(false)]
 [assembly: Guid("a7fe65a7-0b61-4ea1-81c0-adc5a037ea17")]
 
-[assembly: AssemblyVersion("0.12.6")]
-[assembly: AssemblyFileVersion("0.12.6.52")]
-[assembly: AssemblyInformationalVersion("0.12.6-beta")]
+[assembly: AssemblyVersion("1.0.0.*")]
+[assembly: AssemblyInformationalVersion("1.0.0")]
 
 [assembly: InternalsVisibleTo("Syndll2.Tests, PublicKey=" +
 "00240000048000009400000006020000002400005253413100040000010001000f0f0c410cd366" +
