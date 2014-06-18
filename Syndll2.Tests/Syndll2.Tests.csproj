@@ -78,6 +78,7 @@
     <Compile Include="ProgrammingTests\RdyFileTests.cs" />
     <Compile Include="BasicTests\UtilTests.cs" />
     <Compile Include="BasicTests\NumericFormatTests.cs" />
+    <Compile Include="ProgrammingTests\SystemParametersTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="BasicTests\CRCTests.cs" />
   </ItemGroup>
