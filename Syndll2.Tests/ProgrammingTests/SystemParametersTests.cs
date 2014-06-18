@@ -50,7 +50,7 @@ namespace Syndll2.Tests.ProgrammingTests
                                                { 13, "--" }
                                            });
 
-            const string expected = "^00005^001B^00200000^003Y^00415^005^00650^009N^0113^013--^^";
+            const string expected = "^00005^00200000^009N^0113^^";
 
             var rdy = sys.GetRdyFile();
             Assert.AreEqual('p', rdy.Header.TableType);
