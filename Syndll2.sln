@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.30501.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2", "Syndll2\Syndll2.csproj", "{DEF83505-FB2D-4E8D-8BFD-BEA5C64B7486}"
 EndProject
@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Syndll2.FunctionalTests", "Syndll2.FunctionalTests\Syndll2.FunctionalTests.csproj", "{AF1C79AE-A550-472E-ABBB-EA24B0E75FEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{94914ABC-45CE-4010-AFDE-D9B4C6467B29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94914ABC-45CE-4010-AFDE-D9B4C6467B29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94914ABC-45CE-4010-AFDE-D9B4C6467B29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF1C79AE-A550-472E-ABBB-EA24B0E75FEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF1C79AE-A550-472E-ABBB-EA24B0E75FEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF1C79AE-A550-472E-ABBB-EA24B0E75FEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF1C79AE-A550-472E-ABBB-EA24B0E75FEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
