@@ -9,9 +9,11 @@ namespace Syndll2.Tests.BasicTests
     public class ServerTests
     {
         [TestMethod]
-        [Ignore] // run this manually, after enabling polling mode and recording some data
+        //[Ignore] // run this manually, when appropriate
         public async Task Can_Receive_Inbound_Messages_From_Terminal()
         {
+            var cts = new CancellationTokenSource();
+
             var server = new SynelServer();
             server.MessageReceived += (sender, args) =>
             {
@@ -27,10 +29,11 @@ namespace Syndll2.Tests.BasicTests
                     Console.WriteLine(notification.Data);
                     notification.Reply(true, 0, "Success");
                 }
+
+                cts.Cancel();
             };
 
-            var cts = new CancellationTokenSource();
-            server.ListenAsync(cts.Token).Wait(100000, cts.Token);
+            await server.ListenAsync(cts.Token);
 
         }
     }
