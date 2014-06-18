@@ -82,7 +82,7 @@ namespace Syndll2.Tests.BasicTests
         {
             var data = new byte[] {0x4c, 0x31};
             var crc = new byte[] {0x36, 0x3e, 0x3d, 0x33};
-            for (int i = 0; i < 10000000; i++)
+            for (int i = 0; i < 1000000; i++)
                 SynelCRC.Verify(data, crc);
         }
 
