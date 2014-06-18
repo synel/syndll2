@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Syndll2.Data;
@@ -12,7 +13,9 @@ namespace Syndll2.Tests.StatusTests
         public void Can_Get_Terminal_Status_Raw_Multi_Threaded()
         {
             // to test the gatekeeper functionality
-            Parallel.For(0, 10, x => Can_Get_Terminal_Status());
+
+            var tasks = Enumerable.Range(0, 10).Select(x => Can_Get_Terminal_Status_Async()).ToArray();
+            Task.WaitAll(tasks);
         }
 
         [TestMethod]
