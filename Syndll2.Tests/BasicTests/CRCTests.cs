@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System.Diagnostics;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Syndll2.Tests.BasicTests
 {
@@ -64,26 +65,44 @@ namespace Syndll2.Tests.BasicTests
         [TestMethod]
         public void CRC_Calculate_Perf_Test_String()
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             const string data = "L1";
             for (int i = 0; i < 1000000; i++)
                 SynelCRC.Calculate(data);
+
+            sw.Stop();
+            Assert.IsTrue(sw.ElapsedMilliseconds < 300, "Performance test failed at " + sw.ElapsedMilliseconds + " ms.");
         }
 
         [TestMethod]
         public void CRC_Calculate_Perf_Test_Binary()
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             var data = new byte[] { 0x4c, 0x31 };
             for (int i = 0; i < 1000000; i++)
                 SynelCRC.Calculate(data);
+
+            sw.Stop();
+            Assert.IsTrue(sw.ElapsedMilliseconds < 200, "Performance test failed at " + sw.ElapsedMilliseconds + " ms.");
         }
 
         [TestMethod]
         public void CRC_Verify_Perf_Test_Binary()
         {
+            var sw = new Stopwatch();
+            sw.Start();
+
             var data = new byte[] {0x4c, 0x31};
             var crc = new byte[] {0x36, 0x3e, 0x3d, 0x33};
             for (int i = 0; i < 1000000; i++)
                 SynelCRC.Verify(data, crc);
+
+            sw.Stop();
+            Assert.IsTrue(sw.ElapsedMilliseconds < 200, "Performance test failed at " + sw.ElapsedMilliseconds + " ms.");
         }
 
         [TestMethod]
