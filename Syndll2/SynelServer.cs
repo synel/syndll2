@@ -15,16 +15,7 @@ namespace Syndll2
             _idleTimeout = TimeSpan.FromSeconds(idleTimeoutSeconds);
         }
 
-        public event EventHandler<MessageReceivedEventArgs> MessageReceived;
-
-        protected virtual void OnMessageReceived(MessageReceivedEventArgs args)
-        {
-            var handler = MessageReceived;
-            if (handler != null)
-                handler(this, args);
-        }
-        
-        public Task ListenAsync(CancellationToken ct)
+        public Task ListenAsync(CancellationToken ct, Func<PushNotification, Task> asyncMessageReceivedHandler)
         {
             return NetworkConnection.ListenAsync(_port, async connection =>
             {
@@ -74,7 +65,7 @@ namespace Syndll2
                             {
                                 Util.Log(string.Format("Listener Received: {0}", message.RawResponse), connection.RemoteEndPoint.Address);
 
-                                OnMessageReceived(new MessageReceivedEventArgs {Notification = notification});
+                                await asyncMessageReceivedHandler(notification);
                             }
                         }
                     }
