@@ -15,7 +15,9 @@ namespace Syndll2
             _idleTimeout = TimeSpan.FromSeconds(idleTimeoutSeconds);
         }
 
-        public Task ListenAsync(CancellationToken ct, Func<PushNotification, Task> asyncMessageReceivedHandler)
+        public Func<PushNotification, Task> AsyncMessageReceivedHandler { get; set; }
+
+        public Task ListenAsync(CancellationToken ct)
         {
             return NetworkConnection.ListenAsync(_port, async connection =>
             {
@@ -65,7 +67,10 @@ namespace Syndll2
                             {
                                 Util.Log(string.Format("Listener Received: {0}", message.RawResponse), connection.RemoteEndPoint.Address);
 
-                                await asyncMessageReceivedHandler(notification);
+                                if (AsyncMessageReceivedHandler != null)
+                                {
+                                    await AsyncMessageReceivedHandler(notification);
+                                }
                             }
                         }
                     }
