@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Threading.Tasks;
 using Syndll2.Data;
 
 namespace Syndll2
@@ -48,13 +49,33 @@ namespace Syndll2
 
         public void Acknowledege()
         {
+            var task = AcknowledegeAsync();
+            task.Wait();
+            if (task.IsFaulted && task.Exception != null)
+            {
+                throw task.Exception;
+            }
+        }
+
+        public async Task AcknowledegeAsync()
+        {
             if (Type != NotificationType.Data)
                 throw new InvalidOperationException("Acknowledge is only valid for data notifications.");
 
-            _client.SendAndReceive(RequestCommand.AcknowledgeLastRecord, null, ACK);
+            await _client.SendAndReceiveAsync(RequestCommand.AcknowledgeLastRecord, null, ACK);
         }
 
         public void Reply(bool allowed, int code, string message, TextAlignment alignment = TextAlignment.Left)
+        {
+            var task = ReplyAsync(allowed, code, message, alignment);
+            task.Wait();
+            if (task.IsFaulted && task.Exception != null)
+            {
+                throw task.Exception;
+            }
+        }
+
+        public async Task ReplyAsync(bool allowed, int code, string message, TextAlignment alignment = TextAlignment.Left)
         {
             if (Type != NotificationType.Query)
                 throw new InvalidOperationException("Reply is only valid for query notifications.");
@@ -95,7 +116,7 @@ namespace Syndll2
                 code < 0 ? "#" : code.ToString(CultureInfo.InvariantCulture),
                 message);
 
-            _client.SendAndReceive(RequestCommand.QueryReply, data, 3, 300, ACK);
+            await _client.SendAndReceiveAsync(RequestCommand.QueryReply, data, 3, 300, ACK);
         }
 
         
