@@ -185,26 +185,35 @@ namespace Syndll2
 
                 while (!ct.IsCancellationRequested)
                 {
-                    using (var socket = await listenerSocket.AcceptAsync())
+                    try
                     {
-                        if (socket == null)
-                            return;
-
-                        var address = ((IPEndPoint) socket.RemoteEndPoint).Address;
-                        Util.Log("Accepted inbound connection.", address);
-
-                        try
+                        using (var socket = await listenerSocket.AcceptAsync())
                         {
-                            using (var connection = new NetworkConnection(socket, false))
+                            if (socket == null)
+                                return;
+
+                            var address = ((IPEndPoint) socket.RemoteEndPoint).Address;
+                            Util.Log("Accepted inbound connection.", address);
+
+                            try
                             {
-                                await asyncAction(connection);
-                                connection.Stream.Flush();
+                                using (var connection = new NetworkConnection(socket, false))
+                                {
+                                    await asyncAction(connection);
+                                    connection.Stream.Flush();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Util.Log(ex.Message, address);
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            Util.Log(ex.Message, address);
-                        }
+                    }
+                    catch (SocketException ex)
+                    {
+                        // Keep listening when the connection is reset.  Otherwise, raise the exception.
+                        if (ex.SocketErrorCode != SocketError.ConnectionReset)
+                            throw;
                     }
                 }
             }
