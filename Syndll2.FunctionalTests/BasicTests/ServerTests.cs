@@ -15,19 +15,18 @@ namespace Syndll2.FunctionalTests.BasicTests
             var cts = new CancellationTokenSource();
 
             var server = new SynelServer();
-            server.MessageReceived += (sender, args) =>
+            server.AsyncMessageReceivedHandler = async notification =>
             {
-                var notification = args.Notification;
                 if (notification.Type == NotificationType.Data)
                 {
                     Console.WriteLine(notification.Data);
-                    notification.Acknowledege();
+                    await notification.AcknowledegeAsync();
                 }
 
                 if (notification.Type == NotificationType.Query)
                 {
                     Console.WriteLine(notification.Data);
-                    notification.Reply(true, 0, "Success");
+                    await notification.ReplyAsync(true, 0, "Success");
                 }
 
                 cts.Cancel();
