@@ -187,12 +187,17 @@ namespace Syndll2
                 {
                     try
                     {
-                        using (var socket = await listenerSocket.AcceptAsync())
-                        {
-                            if (socket == null)
-                                return;
 
-                            var address = ((IPEndPoint) socket.RemoteEndPoint).Address;
+                        var socket = await listenerSocket.AcceptAsync();
+                        if (socket == null)
+                            return;
+
+                        // NOTE: Processing is intentionally done on a new thread without awaiting
+
+                        // ReSharper disable once CSharpWarnings::CS4014
+                        TaskEx.Run(async () =>
+                        {
+                            var address = ((IPEndPoint)socket.RemoteEndPoint).Address;
                             Util.Log("Accepted inbound connection.", address);
 
                             try
@@ -207,7 +212,11 @@ namespace Syndll2
                             {
                                 Util.Log(ex.Message, address);
                             }
-                        }
+                            finally
+                            {
+                                socket.Dispose();
+                            }
+                        }, ct);
                     }
                     catch (SocketException ex)
                     {
